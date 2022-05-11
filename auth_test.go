@@ -27,6 +27,13 @@ func testAuthRepository(t *testing.T, auth_repo AuthRepository, priv_repo *PrivR
 	assert.NoError(t, auth_repo.Create(auth))
 	assert.NotNil(t, auth.ID)
 
+	// test duplicate
+	auth2 := &AuthEntry{
+		Name:     "test",
+		Password: "123",
+	}
+	assert.Error(t, auth_repo.Create(auth2))
+
 	auth.LastLogin = 456
 	assert.NoError(t, auth_repo.Update(auth))
 
