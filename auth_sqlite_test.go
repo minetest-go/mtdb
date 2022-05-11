@@ -34,13 +34,17 @@ func copyFileContents(src, dst string) (err error) {
 	return
 }
 
-func TestEmptySQliteRepo(t *testing.T) {
-	// init stuff
-	dbfile, err := os.CreateTemp(os.TempDir(), "auth.empty.sqlite")
+func TestMigrateSQliteDB(t *testing.T) {
+	// open db
+	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
+	assert.NoError(t, MigrateAuth(db, "sqlite"))
+}
+
+func TestEmptySQliteRepo(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 	repo := NewAuthRepository(db)
 	assert.NotNil(t, repo)

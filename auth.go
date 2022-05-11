@@ -2,7 +2,31 @@ package mtdb
 
 import (
 	"database/sql"
+	"errors"
 )
+
+func MigrateAuth(db *sql.DB, dbtype string) error {
+	var err error
+	switch dbtype {
+	case "postgres":
+		_, err = db.Exec(`
+		CREATE TABLE if not exists
+			auth (id SERIAL,name TEXT UNIQUE,password TEXT,last_login INT NOT NULL DEFAULT 0,PRIMARY KEY (id));
+		CREATE TABLE if not exists
+			user_privileges (id INT,privilege TEXT,PRIMARY KEY (id, privilege),CONSTRAINT fk_id FOREIGN KEY (id) REFERENCES auth (id) ON DELETE CASCADE);
+		`)
+	case "sqlite":
+		_, err = db.Exec(`
+		CREATE TABLE if not exists
+			auth (id INTEGER PRIMARY KEY AUTOINCREMENT,name VARCHAR(32) UNIQUE,password VARCHAR(512),last_login INTEGER);
+		CREATE TABLE if not exists
+			user_privileges (id INTEGER,privilege VARCHAR(32),PRIMARY KEY (id, privilege)CONSTRAINT fk_id FOREIGN KEY (id) REFERENCES auth (id) ON DELETE CASCADE);
+		`)
+	default:
+		err = errors.New("invalid db type: " + dbtype)
+	}
+	return err
+}
 
 type AuthEntry struct {
 	ID        *int64 `json:"id"`
@@ -33,17 +57,14 @@ func (repo *DBAuthRepository) GetByUsername(username string) (*AuthEntry, error)
 }
 
 func (repo *DBAuthRepository) Create(entry *AuthEntry) error {
-	result, err := repo.db.Exec("insert into auth(id,name,password,last_login) values($1,$2,$3,$4)", entry.ID, entry.Name, entry.Password, entry.LastLogin)
+	rows, err := repo.db.Query("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
 	if err != nil {
 		return err
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
+	if !rows.Next() {
+		return errors.New("no id returned")
 	}
-	// assign returned id
-	entry.ID = &id
-	return nil
+	return rows.Scan(&entry.ID)
 }
 
 func (repo *DBAuthRepository) Update(entry *AuthEntry) error {
