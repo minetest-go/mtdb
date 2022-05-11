@@ -18,19 +18,26 @@ Supported databases:
 
 Read from an existing `auth.sqlite` database:
 ```golang
+import (
+	"database/sql"
+	_ "modernc.org/sqlite"
+    "github/minetest-go/mtdb"
+)
+
+func main() {
     auth_db, err := sql.Open("sqlite", "file:auth.sqlite")
     if err != nil {
         panic(err)
     }
 
     // Enable the wal mode for concurrent access
-    err = EnableWAL(auth_db)
+    err = mtdb.EnableWAL(auth_db)
     if err != nil {
         panic(err)
     }
 
-    auth_repo := NewAuthRepository(auth_db)
-    priv_repo := NewPrivilegeRepository(auth_db)
+    auth_repo := mtdb.NewAuthRepository(auth_db)
+    priv_repo := mtdb.NewPrivilegeRepository(auth_db)
 
     // Read a user
     admin_user, err := auth_repo.GetByUsername("admin")
@@ -45,6 +52,7 @@ Read from an existing `auth.sqlite` database:
     for _, priv := range admin_privs {
         fmt.Printf("+ Priv: %s\n", priv.Privilege)
     }
+}
 ```
 
 
