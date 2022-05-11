@@ -19,8 +19,8 @@ Supported databases:
 Read from an existing `auth.sqlite` database:
 ```golang
 import (
-	"database/sql"
-	_ "modernc.org/sqlite"
+    "database/sql"
+    _ "modernc.org/sqlite"
     "github/minetest-go/mtdb"
 )
 
