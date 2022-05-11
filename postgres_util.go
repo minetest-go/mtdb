@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	_ "github.com/lib/pq"
 )
 
 func getPostgresDB(t *testing.T) (*sql.DB, error) {

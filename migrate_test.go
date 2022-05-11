@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"testing"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/stretchr/testify/assert"
 )
 
