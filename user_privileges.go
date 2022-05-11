@@ -9,16 +9,16 @@ type PrivilegeEntry struct {
 	Privilege string `json:"privilege"`
 }
 
-type DBPrivRepository struct {
+type PrivRepository struct {
 	db     *sql.DB
 	dbtype DatabaseType
 }
 
-func NewPrivilegeRepository(db *sql.DB, dbtype DatabaseType) *DBPrivRepository {
-	return &DBPrivRepository{db: db, dbtype: dbtype}
+func NewPrivilegeRepository(db *sql.DB, dbtype DatabaseType) *PrivRepository {
+	return &PrivRepository{db: db, dbtype: dbtype}
 }
 
-func (repo *DBPrivRepository) GetByID(id int64) ([]*PrivilegeEntry, error) {
+func (repo *PrivRepository) GetByID(id int64) ([]*PrivilegeEntry, error) {
 	rows, err := repo.db.Query("select id,privilege from user_privileges where id = $1", id)
 	if err != nil {
 		return nil, err
@@ -35,12 +35,12 @@ func (repo *DBPrivRepository) GetByID(id int64) ([]*PrivilegeEntry, error) {
 	return list, nil
 }
 
-func (repo *DBPrivRepository) Create(entry *PrivilegeEntry) error {
+func (repo *PrivRepository) Create(entry *PrivilegeEntry) error {
 	_, err := repo.db.Exec("insert into user_privileges(id,privilege) values($1,$2)", entry.ID, entry.Privilege)
 	return err
 }
 
-func (repo *DBPrivRepository) Delete(id int64, privilege string) error {
+func (repo *PrivRepository) Delete(id int64, privilege string) error {
 	_, err := repo.db.Exec("delete from user_privileges where id = $1 and privilege = $2", id, privilege)
 	return err
 }

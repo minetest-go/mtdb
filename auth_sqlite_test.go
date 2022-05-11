@@ -171,3 +171,15 @@ func TestSQlitePrivRepo(t *testing.T) {
 	assert.True(t, privs["interact"])
 	assert.True(t, privs["shout"])
 }
+
+func TestSqliteDB(t *testing.T) {
+	db, err := getPostgresDB(t)
+	assert.NoError(t, err)
+
+	assert.NoError(t, MigrateAuthPostgres(db))
+
+	auth_repo := NewAuthRepository(db, DATABASE_POSTGRES)
+	priv_repo := NewPrivilegeRepository(db, DATABASE_POSTGRES)
+
+	testAuthRepository(t, auth_repo, priv_repo)
+}
