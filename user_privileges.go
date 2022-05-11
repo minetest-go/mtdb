@@ -10,11 +10,12 @@ type PrivilegeEntry struct {
 }
 
 type DBPrivRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	dbtype DatabaseType
 }
 
-func NewPrivilegeRepository(db *sql.DB) *DBPrivRepository {
-	return &DBPrivRepository{db: db}
+func NewPrivilegeRepository(db *sql.DB, dbtype DatabaseType) *DBPrivRepository {
+	return &DBPrivRepository{db: db, dbtype: dbtype}
 }
 
 func (repo *DBPrivRepository) GetByID(id int64) ([]*PrivilegeEntry, error) {

@@ -22,8 +22,6 @@ func MigrateAuth(db *sql.DB, dbtype string) error {
 		CREATE TABLE if not exists
 			user_privileges (id INTEGER,privilege VARCHAR(32),PRIMARY KEY (id, privilege)CONSTRAINT fk_id FOREIGN KEY (id) REFERENCES auth (id) ON DELETE CASCADE);
 		`)
-	default:
-		err = errors.New("invalid db type: " + dbtype)
 	}
 	return err
 }

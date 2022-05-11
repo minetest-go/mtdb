@@ -37,18 +37,27 @@ func TestPostgresDB(t *testing.T) {
 	_, err = db.Exec("delete from auth;")
 	assert.NoError(t, err)
 
-	repo := NewAuthRepository(db, DATABASE_POSTGRES)
-	assert.NotNil(t, repo)
+	auth_repo := NewAuthRepository(db, DATABASE_POSTGRES)
+	assert.NotNil(t, auth_repo)
+	priv_repo := NewPrivilegeRepository(db, DATABASE_POSTGRES)
+	assert.NotNil(t, priv_repo)
 
 	user := &AuthEntry{
 		Name:     "test",
 		Password: "dummy",
 	}
 
-	assert.NoError(t, repo.Create(user))
+	assert.NoError(t, auth_repo.Create(user))
+	assert.NotNil(t, user.ID)
 
-	entry, err := repo.GetByUsername("test")
+	entry, err := auth_repo.GetByUsername("test")
 	assert.NoError(t, err)
 	assert.NotNil(t, entry)
 
+	priv := &PrivilegeEntry{
+		ID:        *user.ID,
+		Privilege: "interact",
+	}
+
+	assert.NoError(t, priv_repo.Create(priv))
 }

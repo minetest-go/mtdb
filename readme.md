@@ -37,7 +37,7 @@ func main() {
     }
 
     auth_repo := mtdb.NewAuthRepository(auth_db, mtdb.DATABASE_SQLITE)
-    priv_repo := mtdb.NewPrivilegeRepository(auth_db)
+    priv_repo := mtdb.NewPrivilegeRepository(auth_db, mtdb.DATABASE_SQLITE)
 
     // Read a user
     admin_user, err := auth_repo.GetByUsername("admin")

@@ -131,7 +131,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := NewPrivilegeRepository(db)
+	repo := NewPrivilegeRepository(db, DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// read privs
