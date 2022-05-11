@@ -30,8 +30,22 @@ func TestPostgresDB(t *testing.T) {
 
 	db, err := sql.Open("postgres", connStr)
 	assert.NoError(t, err)
-	repo := NewAuthRepository(db)
+
+	assert.NoError(t, MigrateAuth(db, "postgres"))
+
+	// delete existing data
+	_, err = db.Exec("delete from auth;")
+	assert.NoError(t, err)
+
+	repo := NewAuthRepository(db, DATABASE_POSTGRES)
 	assert.NotNil(t, repo)
+
+	user := &AuthEntry{
+		Name:     "test",
+		Password: "dummy",
+	}
+
+	assert.NoError(t, repo.Create(user))
 
 	entry, err := repo.GetByUsername("test")
 	assert.NoError(t, err)

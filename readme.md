@@ -36,7 +36,7 @@ func main() {
         panic(err)
     }
 
-    auth_repo := mtdb.NewAuthRepository(auth_db)
+    auth_repo := mtdb.NewAuthRepository(auth_db, mtdb.DATABASE_SQLITE)
     priv_repo := mtdb.NewPrivilegeRepository(auth_db)
 
     // Read a user
