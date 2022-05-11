@@ -1,9 +1,6 @@
 package mtdb
 
 import (
-	"database/sql"
-	"fmt"
-	"os"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -11,27 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func IsDatabaseAvailable() bool {
-	return os.Getenv("PGHOST") != ""
-}
-
 func TestPostgresDB(t *testing.T) {
-	if !IsDatabaseAvailable() {
-		t.SkipNow()
-	}
-
-	connStr := fmt.Sprintf(
-		"user=%s password=%s port=%s host=%s dbname=%s sslmode=disable",
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGHOST"),
-		os.Getenv("PGDATABASE"))
-
-	db, err := sql.Open("postgres", connStr)
+	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
-	assert.NoError(t, MigrateAuth(db, "postgres"))
+	assert.NoError(t, MigrateAuthPostgres(db))
 
 	// delete existing data
 	_, err = db.Exec("delete from auth;")
