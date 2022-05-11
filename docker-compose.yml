@@ -2,7 +2,7 @@ version: "3.6"
 
 services:
  postgres:
-  image: postgres:14.1
+  image: postgres:14.2
   restart: always
   ports:
    - "5432:5432"
@@ -12,7 +12,7 @@ services:
    - "postgres:/var/lib/postgresql/data"
 
  integration-test:
-  image: golang:1.18.1
+  image: golang:1.18.2
   depends_on:
    - postgres
   volumes:
