@@ -14,12 +14,12 @@ func TestMigrateAuthSQlite(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
-	assert.NoError(t, MigrateAuthSqlite(db))
+	assert.NoError(t, MigrateAuthDB(db, DATABASE_SQLITE))
 }
 
 func TestMigrateAuthPostgres(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
-	assert.NoError(t, MigrateAuthPostgres(db))
+	assert.NoError(t, MigrateAuthDB(db, DATABASE_POSTGRES))
 }

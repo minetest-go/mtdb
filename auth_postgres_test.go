@@ -10,7 +10,7 @@ func TestPostgresDB(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
-	assert.NoError(t, MigrateAuthPostgres(db))
+	assert.NoError(t, MigrateAuthDB(db, DATABASE_POSTGRES))
 
 	auth_repo := NewAuthRepository(db, DATABASE_POSTGRES)
 	priv_repo := NewPrivilegeRepository(db, DATABASE_POSTGRES)

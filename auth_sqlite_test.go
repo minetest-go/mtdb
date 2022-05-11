@@ -179,7 +179,7 @@ func TestSqliteDB(t *testing.T) {
 	assert.NotNil(t, dbfile)
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	assert.NoError(t, MigrateAuthSqlite(db))
+	assert.NoError(t, MigrateAuthDB(db, DATABASE_SQLITE))
 	assert.NoError(t, EnableWAL(db))
 
 	auth_repo := NewAuthRepository(db, DATABASE_SQLITE)
