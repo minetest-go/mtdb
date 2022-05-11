@@ -173,13 +173,17 @@ func TestSQlitePrivRepo(t *testing.T) {
 }
 
 func TestSqliteDB(t *testing.T) {
-	db, err := getPostgresDB(t)
+	// open db
+	dbfile, err := os.CreateTemp(os.TempDir(), "auth.sqlite")
 	assert.NoError(t, err)
+	assert.NotNil(t, dbfile)
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	assert.NoError(t, err)
+	assert.NoError(t, MigrateAuthSqlite(db))
+	assert.NoError(t, EnableWAL(db))
 
-	assert.NoError(t, MigrateAuthPostgres(db))
-
-	auth_repo := NewAuthRepository(db, DATABASE_POSTGRES)
-	priv_repo := NewPrivilegeRepository(db, DATABASE_POSTGRES)
+	auth_repo := NewAuthRepository(db, DATABASE_SQLITE)
+	priv_repo := NewPrivilegeRepository(db, DATABASE_SQLITE)
 
 	testAuthRepository(t, auth_repo, priv_repo)
 }
