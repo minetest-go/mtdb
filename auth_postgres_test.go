@@ -37,7 +37,7 @@ func TestPostgresDB(t *testing.T) {
 	_, err = db.Exec("delete from auth;")
 	assert.NoError(t, err)
 
-	repo := NewAuthRepository(db)
+	repo := NewAuthRepository(db, DATABASE_POSTGRES)
 	assert.NotNil(t, repo)
 
 	user := &AuthEntry{

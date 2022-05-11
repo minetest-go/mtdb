@@ -46,7 +46,7 @@ func TestEmptySQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
-	repo := NewAuthRepository(db)
+	repo := NewAuthRepository(db, DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry
@@ -65,7 +65,7 @@ func TestSQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := NewAuthRepository(db)
+	repo := NewAuthRepository(db, DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry

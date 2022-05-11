@@ -36,11 +36,12 @@ type AuthEntry struct {
 }
 
 type DBAuthRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	dbtype DatabaseType
 }
 
-func NewAuthRepository(db *sql.DB) *DBAuthRepository {
-	return &DBAuthRepository{db: db}
+func NewAuthRepository(db *sql.DB, dbtype DatabaseType) *DBAuthRepository {
+	return &DBAuthRepository{db: db, dbtype: dbtype}
 }
 
 func (repo *DBAuthRepository) GetByUsername(username string) (*AuthEntry, error) {
@@ -57,14 +58,26 @@ func (repo *DBAuthRepository) GetByUsername(username string) (*AuthEntry, error)
 }
 
 func (repo *DBAuthRepository) Create(entry *AuthEntry) error {
-	rows, err := repo.db.Query("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
-	if err != nil {
-		return err
+	var err error
+	switch repo.dbtype {
+	case DATABASE_POSTGRES:
+		rows, err := repo.db.Query("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
+		if err != nil {
+			return err
+		}
+		if !rows.Next() {
+			return errors.New("no id returned")
+		}
+		err = rows.Scan(&entry.ID)
+	case DATABASE_SQLITE:
+		res, err := repo.db.Exec("insert into auth(name,password,last_login) values($1,$2,$3)", entry.Name, entry.Password, entry.LastLogin)
+		if err != nil {
+			return err
+		}
+		id, err := res.LastInsertId()
+		entry.ID = &id
 	}
-	if !rows.Next() {
-		return errors.New("no id returned")
-	}
-	return rows.Scan(&entry.ID)
+	return err
 }
 
 func (repo *DBAuthRepository) Update(entry *AuthEntry) error {
