@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostgresDB(t *testing.T) {
+func TestPostgresAuthRepo(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 

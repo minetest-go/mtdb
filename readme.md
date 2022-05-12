@@ -7,7 +7,8 @@ Docs: https://pkg.go.dev/github.com/minetest-go/mtdb
 
 # Features
 
-* Read and write users/privs to and from the `auth` database
+* Read and write users/privs from and to the `auth` database
+* Read and write from and to the `map` database
 
 Supported databases:
 

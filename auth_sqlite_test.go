@@ -172,7 +172,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	assert.True(t, privs["shout"])
 }
 
-func TestSqliteDB(t *testing.T) {
+func TestSqliteAuthRepo(t *testing.T) {
 	// open db
 	dbfile, err := os.CreateTemp(os.TempDir(), "auth.sqlite")
 	assert.NoError(t, err)
