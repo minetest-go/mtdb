@@ -2,7 +2,7 @@ package mtdb
 
 import "database/sql"
 
-type SqliteBlockRepository struct {
+type sqliteBlockRepository struct {
 	db *sql.DB
 }
 
@@ -48,7 +48,7 @@ func PlainToCoord(i int64) (x, y, z int) {
 	return x, y, z
 }
 
-func (repo *SqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
+func (repo *sqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	pos := CoordToPlain(x, y, z)
 	rows, err := repo.db.Query("select pos,data from blocks where pos=$1", pos)
 	if err != nil {
@@ -63,13 +63,13 @@ func (repo *SqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	return entry, err
 }
 
-func (repo *SqliteBlockRepository) Update(block *Block) error {
+func (repo *sqliteBlockRepository) Update(block *Block) error {
 	pos := CoordToPlain(block.PosX, block.PosY, block.PosZ)
 	_, err := repo.db.Exec("replace into blocks(pos,data) values($1, $2)", pos, block.Data)
 	return err
 }
 
-func (repo *SqliteBlockRepository) Delete(x, y, z int) error {
+func (repo *sqliteBlockRepository) Delete(x, y, z int) error {
 	pos := CoordToPlain(x, y, z)
 	_, err := repo.db.Exec("delete from blocks where pos=$1", pos)
 	return err

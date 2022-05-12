@@ -19,9 +19,9 @@ type AuthRepository interface {
 func NewAuthRepository(db *sql.DB, dbtype DatabaseType) AuthRepository {
 	switch dbtype {
 	case DATABASE_SQLITE:
-		return &SqliteAuthRepository{db: db}
+		return &sqliteAuthRepository{db: db}
 	case DATABASE_POSTGRES:
-		return &PostgresAuthRepository{db: db}
+		return &postgresAuthRepository{db: db}
 	default:
 		return nil
 	}

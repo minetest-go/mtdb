@@ -18,9 +18,9 @@ type BlockRepository interface {
 func NewBlockRepository(db *sql.DB, dbtype DatabaseType) BlockRepository {
 	switch dbtype {
 	case DATABASE_POSTGRES:
-		return &PostgresBlockRepository{db: db}
+		return &postgresBlockRepository{db: db}
 	case DATABASE_SQLITE:
-		return &SqliteBlockRepository{db: db}
+		return &sqliteBlockRepository{db: db}
 	default:
 		return nil
 	}

@@ -4,11 +4,11 @@ import (
 	"database/sql"
 )
 
-type PostgresBlockRepository struct {
+type postgresBlockRepository struct {
 	db *sql.DB
 }
 
-func (repo *PostgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
+func (repo *postgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	rows, err := repo.db.Query("select posX,posY,posZ,data from blocks where posX=$1 and posY=$2 and posZ=$3", x, y, z)
 	if err != nil {
 		return nil, err
@@ -21,13 +21,13 @@ func (repo *PostgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	return entry, err
 }
 
-func (repo *PostgresBlockRepository) Update(block *Block) error {
+func (repo *postgresBlockRepository) Update(block *Block) error {
 	_, err := repo.db.Exec("insert into blocks(posX,posY,posZ,data) values($1,$2,$3,$4) ON CONFLICT ON CONSTRAINT blocks_pkey DO UPDATE SET data = $4",
 		block.PosX, block.PosY, block.PosZ, block.Data)
 	return err
 }
 
-func (repo *PostgresBlockRepository) Delete(x, y, z int) error {
+func (repo *postgresBlockRepository) Delete(x, y, z int) error {
 	_, err := repo.db.Exec("delete from blocks where posX=$1 and posY=$2 and posZ=$3", x, y, z)
 	return err
 }
