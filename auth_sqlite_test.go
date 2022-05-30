@@ -42,10 +42,9 @@ func TestEmptySQliteRepo(t *testing.T) {
 	repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
-	// existing entry
-	entry, err := repo.GetByUsername("test")
+	// no such table
+	_, err = repo.GetByUsername("test")
 	assert.Error(t, err)
-	assert.Nil(t, entry)
 }
 
 func TestSQliteRepo(t *testing.T) {

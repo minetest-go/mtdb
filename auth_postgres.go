@@ -10,15 +10,12 @@ type postgresAuthRepository struct {
 }
 
 func (repo *postgresAuthRepository) GetByUsername(username string) (*AuthEntry, error) {
-	rows, err := repo.db.Query("select id,name,password,last_login from auth where name = $1", username)
-	if err != nil {
-		return nil, err
-	}
-	if !rows.Next() {
+	row := repo.db.QueryRow("select id,name,password,last_login from auth where name = $1", username)
+	entry := &AuthEntry{}
+	err := row.Scan(&entry.ID, &entry.Name, &entry.Password, &entry.LastLogin)
+	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	entry := &AuthEntry{}
-	err = rows.Scan(&entry.ID, &entry.Name, &entry.Password, &entry.LastLogin)
 	return entry, err
 }
 
