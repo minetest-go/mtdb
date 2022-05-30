@@ -1,4 +1,4 @@
-package mtdb
+package mtdb_test
 
 import (
 	"database/sql"

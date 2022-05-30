@@ -1,4 +1,4 @@
-package mtdb
+package mtdb_test
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	"github.com/minetest-go/mtdb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +39,7 @@ func TestEmptySQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
-	repo := NewAuthRepository(db, DATABASE_SQLITE)
+	repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry
@@ -57,7 +58,7 @@ func TestSQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := NewAuthRepository(db, DATABASE_SQLITE)
+	repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry
@@ -75,7 +76,7 @@ func TestSQliteRepo(t *testing.T) {
 	assert.Nil(t, entry)
 
 	// create entry
-	new_entry := &AuthEntry{
+	new_entry := &mtdb.AuthEntry{
 		Name:      "createduser",
 		Password:  "blah",
 		LastLogin: 456,
@@ -123,7 +124,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := NewPrivilegeRepository(db, DATABASE_SQLITE)
+	repo := mtdb.NewPrivilegeRepository(db, mtdb.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// read privs
@@ -140,7 +141,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	assert.True(t, privs["shout"])
 
 	// create
-	assert.NoError(t, repo.Create(&PrivilegeEntry{ID: 2, Privilege: "stuff"}))
+	assert.NoError(t, repo.Create(&mtdb.PrivilegeEntry{ID: 2, Privilege: "stuff"}))
 
 	// verify
 	list, err = repo.GetByID(2)
@@ -179,11 +180,11 @@ func TestSqliteAuthRepo(t *testing.T) {
 	assert.NotNil(t, dbfile)
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	assert.NoError(t, MigrateAuthDB(db, DATABASE_SQLITE))
-	assert.NoError(t, EnableWAL(db))
+	assert.NoError(t, mtdb.MigrateAuthDB(db, mtdb.DATABASE_SQLITE))
+	assert.NoError(t, mtdb.EnableWAL(db))
 
-	auth_repo := NewAuthRepository(db, DATABASE_SQLITE)
-	priv_repo := NewPrivilegeRepository(db, DATABASE_SQLITE)
+	auth_repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
+	priv_repo := mtdb.NewPrivilegeRepository(db, mtdb.DATABASE_SQLITE)
 
 	testAuthRepository(t, auth_repo, priv_repo)
 }

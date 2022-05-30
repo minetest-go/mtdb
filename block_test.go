@@ -1,12 +1,13 @@
-package mtdb
+package mtdb_test
 
 import (
 	"testing"
 
+	"github.com/minetest-go/mtdb"
 	"github.com/stretchr/testify/assert"
 )
 
-func testBlocksRepository(t *testing.T, block_repo BlockRepository) {
+func testBlocksRepository(t *testing.T, block_repo mtdb.BlockRepository) {
 
 	// cleanup
 	assert.NoError(t, block_repo.Delete(0, 0, 0))
@@ -17,7 +18,7 @@ func testBlocksRepository(t *testing.T, block_repo BlockRepository) {
 	assert.Nil(t, block)
 
 	// create
-	block = &Block{
+	block = &mtdb.Block{
 		PosX: 0,
 		PosY: 0,
 		PosZ: 0,

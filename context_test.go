@@ -1,4 +1,4 @@
-package mtdb
+package mtdb_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/minetest-go/mtdb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ player_backend = sqlite3
 	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
 	assert.NoError(t, err)
 
-	repos, err := New(tmpdir)
+	repos, err := mtdb.New(tmpdir)
 	assert.NoError(t, err)
 	assert.NotNil(t, repos)
 	assert.NotNil(t, repos.Auth)
@@ -51,7 +52,7 @@ player_backend = postgresql
 	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
 	assert.NoError(t, err)
 
-	repos, err := New(tmpdir)
+	repos, err := mtdb.New(tmpdir)
 	assert.NoError(t, err)
 	assert.NotNil(t, repos)
 	assert.NotNil(t, repos.Auth)

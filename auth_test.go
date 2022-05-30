@@ -1,12 +1,13 @@
-package mtdb
+package mtdb_test
 
 import (
 	"testing"
 
+	"github.com/minetest-go/mtdb"
 	"github.com/stretchr/testify/assert"
 )
 
-func testAuthRepository(t *testing.T, auth_repo AuthRepository, priv_repo *PrivRepository) {
+func testAuthRepository(t *testing.T, auth_repo mtdb.AuthRepository, priv_repo *mtdb.PrivRepository) {
 	// prepare test env
 	auth, err := auth_repo.GetByUsername("test")
 	assert.NoError(t, err)
@@ -18,7 +19,7 @@ func testAuthRepository(t *testing.T, auth_repo AuthRepository, priv_repo *PrivR
 	assert.NoError(t, err)
 	assert.Nil(t, auth)
 
-	auth = &AuthEntry{
+	auth = &mtdb.AuthEntry{
 		Name:      "test",
 		Password:  "blah",
 		LastLogin: 123,
@@ -28,7 +29,7 @@ func testAuthRepository(t *testing.T, auth_repo AuthRepository, priv_repo *PrivR
 	assert.NotNil(t, auth.ID)
 
 	// test duplicate
-	auth2 := &AuthEntry{
+	auth2 := &mtdb.AuthEntry{
 		Name:     "test",
 		Password: "123",
 	}
@@ -45,7 +46,7 @@ func testAuthRepository(t *testing.T, auth_repo AuthRepository, priv_repo *PrivR
 	assert.Equal(t, 456, auth.LastLogin)
 	assert.NotNil(t, auth.ID)
 
-	priv := &PrivilegeEntry{
+	priv := &mtdb.PrivilegeEntry{
 		ID:        *auth.ID,
 		Privilege: "interact",
 	}
