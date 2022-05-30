@@ -10,9 +10,17 @@ import (
 )
 
 type Context struct {
-	Auth   AuthRepository
-	Privs  *PrivRepository
-	Blocks BlockRepository
+	Auth    AuthRepository
+	Privs   *PrivRepository
+	Blocks  BlockRepository
+	map_db  *sql.DB
+	auth_db *sql.DB
+}
+
+// closes all database connections
+func (ctx *Context) Close() {
+	ctx.map_db.Close()
+	ctx.auth_db.Close()
 }
 
 // parses the "world.mt" file in the world-dir and creates a new context
@@ -22,6 +30,8 @@ func New(world_dir string) (*Context, error) {
 		return nil, err
 	}
 	ctx := &Context{}
+
+	//TODO: refactor/minimize repetitive code
 
 	// create map repos
 	switch wc[worldconfig.CONFIG_MAP_BACKEND] {
@@ -42,6 +52,7 @@ func New(world_dir string) (*Context, error) {
 		}
 
 		ctx.Blocks = NewBlockRepository(map_db, DATABASE_SQLITE)
+		ctx.map_db = map_db
 
 	case worldconfig.BACKEND_POSTGRES:
 		map_db, err := sql.Open("postgres", wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION])
@@ -55,6 +66,7 @@ func New(world_dir string) (*Context, error) {
 		}
 
 		ctx.Blocks = NewBlockRepository(map_db, DATABASE_POSTGRES)
+		ctx.map_db = map_db
 	}
 
 	// create auth repos
@@ -77,6 +89,8 @@ func New(world_dir string) (*Context, error) {
 
 		ctx.Auth = NewAuthRepository(auth_db, DATABASE_SQLITE)
 		ctx.Privs = NewPrivilegeRepository(auth_db, DATABASE_SQLITE)
+		ctx.auth_db = auth_db
+
 	case worldconfig.BACKEND_POSTGRES:
 		auth_db, err := sql.Open("postgres", wc[worldconfig.CONFIG_PSQL_AUTH_CONNECTION])
 		if err != nil {
@@ -90,6 +104,8 @@ func New(world_dir string) (*Context, error) {
 
 		ctx.Auth = NewAuthRepository(auth_db, DATABASE_POSTGRES)
 		ctx.Privs = NewPrivilegeRepository(auth_db, DATABASE_POSTGRES)
+		ctx.auth_db = auth_db
+
 	}
 
 	return ctx, nil
