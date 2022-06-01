@@ -15,18 +15,25 @@ func testAuthRepository(t *testing.T, auth_repo mtdb.AuthRepository, priv_repo *
 		assert.NoError(t, auth_repo.Delete(*auth.ID))
 	}
 
+	// get by username (nonexistent)
 	auth, err = auth_repo.GetByUsername("test")
 	assert.NoError(t, err)
 	assert.Nil(t, auth)
 
+	// create new entry
 	auth = &mtdb.AuthEntry{
 		Name:      "test",
 		Password:  "blah",
 		LastLogin: 123,
 	}
-
 	assert.NoError(t, auth_repo.Create(auth))
 	assert.NotNil(t, auth.ID)
+
+	// search by username
+	list, err := auth_repo.SearchByUsername("te%")
+	assert.NoError(t, err)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, len(list))
 
 	// test duplicate
 	auth2 := &mtdb.AuthEntry{

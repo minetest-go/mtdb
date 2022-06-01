@@ -18,6 +18,23 @@ func (repo *sqliteAuthRepository) GetByUsername(username string) (*AuthEntry, er
 	return entry, err
 }
 
+func (repo *sqliteAuthRepository) SearchByUsername(usernamelike string) ([]*AuthEntry, error) {
+	rows, err := repo.db.Query("select id,name,password,last_login from auth where name like $1", usernamelike)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]*AuthEntry, 0)
+	for rows.Next() {
+		entry := &AuthEntry{}
+		err := rows.Scan(&entry.ID, &entry.Name, &entry.Password, &entry.LastLogin)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, entry)
+	}
+	return list, nil
+}
+
 func (repo *sqliteAuthRepository) Create(entry *AuthEntry) error {
 	res, err := repo.db.Exec("insert into auth(name,password,last_login) values($1,$2,$3)", entry.Name, entry.Password, entry.LastLogin)
 	if err != nil {

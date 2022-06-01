@@ -11,6 +11,7 @@ type AuthEntry struct {
 
 type AuthRepository interface {
 	GetByUsername(username string) (*AuthEntry, error)
+	SearchByUsername(usernamelike string) ([]*AuthEntry, error)
 	Create(entry *AuthEntry) error
 	Update(entry *AuthEntry) error
 	Delete(id int64) error

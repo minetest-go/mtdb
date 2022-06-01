@@ -18,6 +18,23 @@ func (repo *postgresAuthRepository) GetByUsername(username string) (*AuthEntry, 
 	return entry, err
 }
 
+func (repo *postgresAuthRepository) SearchByUsername(usernamelike string) ([]*AuthEntry, error) {
+	rows, err := repo.db.Query("select id,name,password,last_login from auth where name like $1", usernamelike)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]*AuthEntry, 0)
+	for rows.Next() {
+		entry := &AuthEntry{}
+		err := rows.Scan(&entry.ID, &entry.Name, &entry.Password, &entry.LastLogin)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, entry)
+	}
+	return list, nil
+}
+
 func (repo *postgresAuthRepository) Create(entry *AuthEntry) error {
 	row := repo.db.QueryRow("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
 	return row.Scan(&entry.ID)
