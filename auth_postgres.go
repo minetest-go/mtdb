@@ -2,7 +2,6 @@ package mtdb
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type postgresAuthRepository struct {
@@ -20,15 +19,8 @@ func (repo *postgresAuthRepository) GetByUsername(username string) (*AuthEntry, 
 }
 
 func (repo *postgresAuthRepository) Create(entry *AuthEntry) error {
-	rows, err := repo.db.Query("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
-	if err != nil {
-		return err
-	}
-	if !rows.Next() {
-		return errors.New("no id returned")
-	}
-	err = rows.Scan(&entry.ID)
-	return err
+	row := repo.db.QueryRow("insert into auth(name,password,last_login) values($1,$2,$3) returning id", entry.Name, entry.Password, entry.LastLogin)
+	return row.Scan(&entry.ID)
 }
 
 func (repo *postgresAuthRepository) Update(entry *AuthEntry) error {

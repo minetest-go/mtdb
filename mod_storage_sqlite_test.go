@@ -29,11 +29,26 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	assert.Equal(t, []byte("return {[\"singleplayer\"] = {[\"waypoints\"] = {}}}"), entry.Value)
 
 	// create
-	assert.NoError(t, repo.Create(&mtdb.ModStorageEntry{
+	entry = &mtdb.ModStorageEntry{
 		ModName: "mymod",
 		Key:     []byte("mykey"),
 		Value:   []byte("myvalue"),
-	}))
+	}
+	assert.NoError(t, repo.Create(entry))
 
-	//TODO: update/delete
+	// update
+	entry.Value = []byte("othervalue")
+	assert.NoError(t, repo.Update(entry))
+
+	entry2, err := repo.Get("mymod", []byte("mykey"))
+	assert.NoError(t, err)
+	assert.NotNil(t, entry2)
+	assert.Equal(t, entry.Value, entry2.Value)
+
+	// delete
+	assert.NoError(t, repo.Delete("mymod", []byte("mykey")))
+	entry, err = repo.Get("mymod", []byte("mykey"))
+	assert.NoError(t, err)
+	assert.Nil(t, entry)
+
 }

@@ -6,17 +6,9 @@ import (
 )
 
 func EnableWAL(db *sql.DB) error {
-	result, err := db.Query("pragma journal_mode;")
-	if err != nil {
-		return err
-	}
-
-	if !result.Next() {
-		return errors.New("no results returned")
-	}
-
+	result := db.QueryRow("pragma journal_mode;")
 	var mode string
-	err = result.Scan(&mode)
+	err := result.Scan(&mode)
 	if err != nil {
 		return err
 	}
