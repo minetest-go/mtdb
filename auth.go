@@ -1,6 +1,9 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type AuthEntry struct {
 	ID        *int64 `json:"id"`
@@ -27,8 +30,37 @@ func (repo *AuthRepository) GetByUsername(username string) (*AuthEntry, error) {
 	return entry, err
 }
 
-func (repo *AuthRepository) SearchByUsername(usernamelike string) ([]*AuthEntry, error) {
-	rows, err := repo.db.Query("select id,name,password,last_login from auth where name like $1", usernamelike)
+type AuthSearch struct {
+	Usernamelike *string `json:"usernamelike"`
+	Username     *string `json:"username"`
+}
+
+func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (string, []interface{}) {
+	q := `select ` + fields + ` from auth where true `
+	args := make([]interface{}, 0)
+	i := 1
+
+	if s.Username != nil {
+		q += fmt.Sprintf(" and name = $%d", i)
+		args = append(args, *s.Username)
+		i++
+	}
+
+	if s.Usernamelike != nil {
+		q += fmt.Sprintf(" and name like $%d", i)
+		args = append(args, *s.Usernamelike)
+		i++
+	}
+
+	// limit result length to 1000 per default
+	q += " limit 1000"
+
+	return q, args
+}
+
+func (repo *AuthRepository) Search(s *AuthSearch) ([]*AuthEntry, error) {
+	q, args := repo.buildWhereClause("id,name,password,last_login", s)
+	rows, err := repo.db.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,6 +74,14 @@ func (repo *AuthRepository) SearchByUsername(usernamelike string) ([]*AuthEntry,
 		list = append(list, entry)
 	}
 	return list, nil
+}
+
+func (repo *AuthRepository) Count(s *AuthSearch) (int, error) {
+	q, args := repo.buildWhereClause("count(*)", s)
+	row := repo.db.QueryRow(q, args...)
+	count := 0
+	err := row.Scan(&count)
+	return count, err
 }
 
 func (repo *AuthRepository) Create(entry *AuthEntry) error {

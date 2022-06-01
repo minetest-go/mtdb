@@ -29,11 +29,21 @@ func testAuthRepository(t *testing.T, auth_repo *mtdb.AuthRepository, priv_repo 
 	assert.NoError(t, auth_repo.Create(auth))
 	assert.NotNil(t, auth.ID)
 
-	// search by username
-	list, err := auth_repo.SearchByUsername("te%")
+	// search
+	s_username := "te%"
+	list, err := auth_repo.Search(&mtdb.AuthSearch{
+		Usernamelike: &s_username,
+	})
 	assert.NoError(t, err)
 	assert.NotNil(t, list)
 	assert.Equal(t, 1, len(list))
+
+	// count
+	count, err := auth_repo.Count(&mtdb.AuthSearch{
+		Usernamelike: &s_username,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
 
 	// test duplicate
 	auth2 := &mtdb.AuthEntry{
