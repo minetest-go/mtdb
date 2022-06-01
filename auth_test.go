@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testAuthRepository(t *testing.T, auth_repo mtdb.AuthRepository, priv_repo *mtdb.PrivRepository) {
+func testAuthRepository(t *testing.T, auth_repo *mtdb.AuthRepository, priv_repo *mtdb.PrivRepository) {
 	// prepare test env
 	auth, err := auth_repo.GetByUsername("test")
 	assert.NoError(t, err)

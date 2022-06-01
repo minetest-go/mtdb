@@ -10,7 +10,7 @@ import (
 )
 
 type Context struct {
-	Auth    AuthRepository
+	Auth    *AuthRepository
 	Privs   *PrivRepository
 	Blocks  BlockRepository
 	map_db  *sql.DB
