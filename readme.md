@@ -9,11 +9,12 @@ Docs: https://pkg.go.dev/github.com/minetest-go/mtdb
 
 * Read and write users/privs from and to the `auth` database
 * Read and write from and to the `map` database
+* Read and write from the `mod_storage` database
 
 Supported databases:
 
-* Sqlite3
-* Postgres
+* Sqlite3 (auth,blocks,mod_storage)
+* Postgres (auth.blocks)
 
 # License
 
