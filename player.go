@@ -1,5 +1,7 @@
 package mtdb
 
+import "database/sql"
+
 type Player struct {
 	Name             string  `json:"name"`
 	Pitch            float64 `json:"pitch"`
@@ -32,4 +34,12 @@ type PlayerInventoryItems struct {
 	InvID  int    `json:"inv_id"`
 	SlotID int    `json:"slot_id"`
 	Item   string `json:"item"`
+}
+
+func NewPlayerRepository(db *sql.DB, dbtype DatabaseType) *PlayerRepository {
+	return &PlayerRepository{db: db}
+}
+
+type PlayerRepository struct {
+	db *sql.DB
 }
