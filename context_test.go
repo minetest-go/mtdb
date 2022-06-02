@@ -16,6 +16,7 @@ func TestNewSqlite(t *testing.T) {
 backend = sqlite3
 auth_backend = sqlite3
 player_backend = sqlite3
+mod_storage_backend = sqlite3
 	`
 	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
 	assert.NoError(t, err)

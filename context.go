@@ -10,17 +10,20 @@ import (
 )
 
 type Context struct {
-	Auth    *AuthRepository
-	Privs   *PrivRepository
-	Blocks  BlockRepository
-	map_db  *sql.DB
-	auth_db *sql.DB
+	Auth           *AuthRepository
+	Privs          *PrivRepository
+	Blocks         BlockRepository
+	ModStorage     ModStorageRepository
+	map_db         *sql.DB
+	auth_db        *sql.DB
+	mod_storage_db *sql.DB
 }
 
 // closes all database connections
 func (ctx *Context) Close() {
 	ctx.map_db.Close()
 	ctx.auth_db.Close()
+	ctx.mod_storage_db.Close()
 }
 
 // parses the "world.mt" file in the world-dir and creates a new context
@@ -106,6 +109,22 @@ func New(world_dir string) (*Context, error) {
 		ctx.Privs = NewPrivilegeRepository(auth_db, DATABASE_POSTGRES)
 		ctx.auth_db = auth_db
 
+	}
+
+	switch wc[worldconfig.CONFIG_STORAGE_BACKEND] {
+	case worldconfig.BACKEND_SQLITE3:
+		mod_storage_db, err := sql.Open("sqlite", path.Join(world_dir, "mod_storage.sqlite"))
+		if err != nil {
+			return nil, err
+		}
+
+		err = MigrateModStorageDB(mod_storage_db, DATABASE_SQLITE)
+		if err != nil {
+			return nil, err
+		}
+
+		ctx.ModStorage = NewModStorageRepository(mod_storage_db, DATABASE_SQLITE)
+		ctx.mod_storage_db = mod_storage_db
 	}
 
 	return ctx, nil
