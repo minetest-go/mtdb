@@ -12,9 +12,11 @@ import (
 type Context struct {
 	Auth           *AuthRepository
 	Privs          *PrivRepository
+	Player         *PlayerRepository
 	Blocks         BlockRepository
 	ModStorage     ModStorageRepository
 	map_db         *sql.DB
+	player_db      *sql.DB
 	auth_db        *sql.DB
 	mod_storage_db *sql.DB
 }
@@ -22,6 +24,7 @@ type Context struct {
 // closes all database connections
 func (ctx *Context) Close() {
 	ctx.map_db.Close()
+	ctx.player_db.Close()
 	ctx.auth_db.Close()
 	ctx.mod_storage_db.Close()
 }
@@ -111,6 +114,7 @@ func New(world_dir string) (*Context, error) {
 
 	}
 
+	// mod storage
 	switch wc[worldconfig.CONFIG_STORAGE_BACKEND] {
 	case worldconfig.BACKEND_SQLITE3:
 		mod_storage_db, err := sql.Open("sqlite", path.Join(world_dir, "mod_storage.sqlite"))
@@ -125,6 +129,23 @@ func New(world_dir string) (*Context, error) {
 
 		ctx.ModStorage = NewModStorageRepository(mod_storage_db, DATABASE_SQLITE)
 		ctx.mod_storage_db = mod_storage_db
+	}
+
+	// players
+	switch wc[worldconfig.CONFIG_PLAYER_BACKEND] {
+	case worldconfig.BACKEND_SQLITE3:
+		player_db, err := sql.Open("sqlite", path.Join(world_dir, "players.sqlite"))
+		if err != nil {
+			return nil, err
+		}
+
+		err = MigrateModStorageDB(player_db, DATABASE_SQLITE)
+		if err != nil {
+			return nil, err
+		}
+
+		ctx.Player = NewPlayerRepository(player_db, DATABASE_SQLITE)
+		ctx.player_db = player_db
 	}
 
 	return ctx, nil
