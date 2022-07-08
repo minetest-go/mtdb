@@ -9,6 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSQliteMigratePlayer(t *testing.T) {
+	// open db
+	db, err := sql.Open("sqlite", ":memory:")
+	assert.NoError(t, err)
+
+	assert.NoError(t, mtdb.MigratePlayerDB(db, mtdb.DATABASE_SQLITE))
+}
+
 func TestSqlitePlayerRepo(t *testing.T) {
 	// init stuff
 	dbfile, err := os.CreateTemp(os.TempDir(), "players.sqlite")
@@ -19,6 +27,7 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
+	assert.NoError(t, mtdb.MigratePlayerDB(db, mtdb.DATABASE_SQLITE))
 	repo := mtdb.NewPlayerRepository(db, mtdb.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
