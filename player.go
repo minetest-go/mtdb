@@ -1,6 +1,9 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type Player struct {
 	Name             string  `json:"name"`
@@ -42,4 +45,22 @@ func NewPlayerRepository(db *sql.DB, dbtype DatabaseType) *PlayerRepository {
 
 type PlayerRepository struct {
 	db *sql.DB
+}
+
+func (r *PlayerRepository) GetPlayer(name string) (*Player, error) {
+	q := `
+		select name,pitch,yaw,
+			posx,posy,posz,
+			hp,breath,
+			strftime('%s', creation_date),strftime('%s', modification_date)
+		from player
+		where name = $1
+	`
+	row := r.db.QueryRow(q, name)
+	p := &Player{}
+	err := row.Scan(&p.Name, &p.Pitch, &p.Yaw, &p.PosX, &p.PosY, &p.PosZ, &p.HP, &p.Breath, &p.CreationDate, &p.ModificationDate)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	return p, nil
 }
