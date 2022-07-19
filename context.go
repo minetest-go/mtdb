@@ -12,7 +12,7 @@ import (
 type Context struct {
 	Auth           *AuthRepository
 	Privs          *PrivRepository
-	Player         *PlayerRepository
+	Player         PlayerRepository
 	Blocks         BlockRepository
 	ModStorage     ModStorageRepository
 	map_db         *sql.DB

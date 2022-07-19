@@ -39,15 +39,23 @@ type PlayerInventoryItems struct {
 	Item   string `json:"item"`
 }
 
-func NewPlayerRepository(db *sql.DB, dbtype DatabaseType) *PlayerRepository {
-	return &PlayerRepository{db: db}
+type PlayerRepository interface {
+	GetPlayer(name string) (*Player, error)
 }
 
-type PlayerRepository struct {
+func NewPlayerRepository(db *sql.DB, dbtype DatabaseType) PlayerRepository {
+	switch dbtype {
+	case DATABASE_SQLITE:
+		return &PlayerSqliteRepository{db: db}
+	}
+	return nil
+}
+
+type PlayerSqliteRepository struct {
 	db *sql.DB
 }
 
-func (r *PlayerRepository) GetPlayer(name string) (*Player, error) {
+func (r *PlayerSqliteRepository) GetPlayer(name string) (*Player, error) {
 	q := `
 		select name,pitch,yaw,
 			posx,posy,posz,
