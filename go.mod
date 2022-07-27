@@ -2,7 +2,7 @@ module github.com/minetest-go/mtdb
 
 go 1.18
 
-require modernc.org/sqlite v1.17.3
+require modernc.org/sqlite v1.18.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
