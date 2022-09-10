@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestSqliteBlockRepo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, mtdb.EnableWAL(db))
 
-	assert.NoError(t, mtdb.MigrateBlockDB(db, mtdb.DATABASE_SQLITE))
-	blocks_repo := mtdb.NewBlockRepository(db, mtdb.DATABASE_SQLITE)
+	assert.NoError(t, mtdb.MigrateBlockDB(db, types.DATABASE_SQLITE))
+	blocks_repo := mtdb.NewBlockRepository(db, types.DATABASE_SQLITE)
 	testBlocksRepository(t, blocks_repo)
 }

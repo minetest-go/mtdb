@@ -1,6 +1,10 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/minetest-go/mtdb/types"
+)
 
 type Block struct {
 	PosX int
@@ -15,11 +19,11 @@ type BlockRepository interface {
 	Delete(x, y, z int) error
 }
 
-func NewBlockRepository(db *sql.DB, dbtype DatabaseType) BlockRepository {
+func NewBlockRepository(db *sql.DB, dbtype types.DatabaseType) BlockRepository {
 	switch dbtype {
-	case DATABASE_POSTGRES:
+	case types.DATABASE_POSTGRES:
 		return &postgresBlockRepository{db: db}
-	case DATABASE_SQLITE:
+	case types.DATABASE_SQLITE:
 		return &sqliteBlockRepository{db: db}
 	default:
 		return nil

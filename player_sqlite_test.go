@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +15,7 @@ func TestSQliteMigratePlayer(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigratePlayerDB(db, mtdb.DATABASE_SQLITE))
+	assert.NoError(t, mtdb.MigratePlayerDB(db, types.DATABASE_SQLITE))
 }
 
 func TestSqlitePlayerRepo(t *testing.T) {
@@ -27,8 +28,8 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	assert.NoError(t, mtdb.MigratePlayerDB(db, mtdb.DATABASE_SQLITE))
-	repo := mtdb.NewPlayerRepository(db, mtdb.DATABASE_SQLITE)
+	assert.NoError(t, mtdb.MigratePlayerDB(db, types.DATABASE_SQLITE))
+	repo := mtdb.NewPlayerRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry

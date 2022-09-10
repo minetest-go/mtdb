@@ -1,11 +1,15 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
 
-func MigrateModStorageDB(db *sql.DB, dbtype DatabaseType) error {
+	"github.com/minetest-go/mtdb/types"
+)
+
+func MigrateModStorageDB(db *sql.DB, dbtype types.DatabaseType) error {
 	var err error
 	switch dbtype {
-	case DATABASE_SQLITE:
+	case types.DATABASE_SQLITE:
 		_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS entries (
 			modname TEXT NOT NULL,

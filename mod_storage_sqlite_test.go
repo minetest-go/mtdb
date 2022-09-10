@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := mtdb.NewModStorageRepository(db, mtdb.DATABASE_SQLITE)
+	repo := mtdb.NewModStorageRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry

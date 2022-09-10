@@ -3,6 +3,8 @@ package mtdb
 import (
 	"database/sql"
 	"errors"
+
+	"github.com/minetest-go/mtdb/types"
 )
 
 type Player struct {
@@ -43,9 +45,9 @@ type PlayerRepository interface {
 	GetPlayer(name string) (*Player, error)
 }
 
-func NewPlayerRepository(db *sql.DB, dbtype DatabaseType) PlayerRepository {
+func NewPlayerRepository(db *sql.DB, dbtype types.DatabaseType) PlayerRepository {
 	switch dbtype {
-	case DATABASE_SQLITE:
+	case types.DATABASE_SQLITE:
 		return &PlayerSqliteRepository{db: db}
 	}
 	return nil

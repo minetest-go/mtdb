@@ -7,6 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,12 +16,12 @@ func TestMigrateBlockSQlite(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigrateBlockDB(db, mtdb.DATABASE_SQLITE))
+	assert.NoError(t, mtdb.MigrateBlockDB(db, types.DATABASE_SQLITE))
 }
 
 func TestMigrateBlockPostgres(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigrateBlockDB(db, mtdb.DATABASE_POSTGRES))
+	assert.NoError(t, mtdb.MigrateBlockDB(db, types.DATABASE_POSTGRES))
 }

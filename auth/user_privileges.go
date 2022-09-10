@@ -1,7 +1,9 @@
-package mtdb
+package auth
 
 import (
 	"database/sql"
+
+	"github.com/minetest-go/mtdb/types"
 )
 
 type PrivilegeEntry struct {
@@ -11,10 +13,10 @@ type PrivilegeEntry struct {
 
 type PrivRepository struct {
 	db     *sql.DB
-	dbtype DatabaseType
+	dbtype types.DatabaseType
 }
 
-func NewPrivilegeRepository(db *sql.DB, dbtype DatabaseType) *PrivRepository {
+func NewPrivilegeRepository(db *sql.DB, dbtype types.DatabaseType) *PrivRepository {
 	return &PrivRepository{db: db, dbtype: dbtype}
 }
 

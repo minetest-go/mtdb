@@ -1,8 +1,10 @@
-package mtdb
+package auth
 
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/minetest-go/mtdb/types"
 )
 
 type AuthEntry struct {
@@ -12,7 +14,7 @@ type AuthEntry struct {
 	LastLogin int    `json:"last_login"`
 }
 
-func NewAuthRepository(db *sql.DB, dbtype DatabaseType) *AuthRepository {
+func NewAuthRepository(db *sql.DB, dbtype types.DatabaseType) *AuthRepository {
 	return &AuthRepository{db: db}
 }
 

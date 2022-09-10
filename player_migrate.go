@@ -1,11 +1,15 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
 
-func MigratePlayerDB(db *sql.DB, dbtype DatabaseType) error {
+	"github.com/minetest-go/mtdb/types"
+)
+
+func MigratePlayerDB(db *sql.DB, dbtype types.DatabaseType) error {
 	var err error
 	switch dbtype {
-	case DATABASE_SQLITE:
+	case types.DATABASE_SQLITE:
 		_, err = db.Exec(`
 			CREATE TABLE IF NOT EXISTS player(
 				name VARCHAR(50) NOT NULL,
@@ -45,7 +49,7 @@ func MigratePlayerDB(db *sql.DB, dbtype DatabaseType) error {
 				FOREIGN KEY (player) REFERENCES player (name) ON DELETE CASCADE
 			);
 		`)
-	case DATABASE_POSTGRES:
+	case types.DATABASE_POSTGRES:
 		_, err = db.Exec(`
 			CREATE TABLE IF NOT EXISTS player (
 				name VARCHAR(60) NOT NULL,

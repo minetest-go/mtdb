@@ -5,13 +5,15 @@ import (
 	"path"
 
 	_ "github.com/lib/pq"
+	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/minetest-go/mtdb/worldconfig"
 	_ "modernc.org/sqlite"
 )
 
 type Context struct {
-	Auth           *AuthRepository
-	Privs          *PrivRepository
+	Auth           *auth.AuthRepository
+	Privs          *auth.PrivRepository
 	Player         PlayerRepository
 	Blocks         BlockRepository
 	ModStorage     ModStorageRepository
@@ -52,12 +54,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateBlockDB(map_db, DATABASE_SQLITE)
+		err = MigrateBlockDB(map_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Blocks = NewBlockRepository(map_db, DATABASE_SQLITE)
+		ctx.Blocks = NewBlockRepository(map_db, types.DATABASE_SQLITE)
 		ctx.map_db = map_db
 
 	case worldconfig.BACKEND_POSTGRES:
@@ -66,12 +68,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateBlockDB(map_db, DATABASE_POSTGRES)
+		err = MigrateBlockDB(map_db, types.DATABASE_POSTGRES)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Blocks = NewBlockRepository(map_db, DATABASE_POSTGRES)
+		ctx.Blocks = NewBlockRepository(map_db, types.DATABASE_POSTGRES)
 		ctx.map_db = map_db
 	}
 
@@ -88,13 +90,13 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateAuthDB(auth_db, DATABASE_SQLITE)
+		err = auth.MigrateAuthDB(auth_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Auth = NewAuthRepository(auth_db, DATABASE_SQLITE)
-		ctx.Privs = NewPrivilegeRepository(auth_db, DATABASE_SQLITE)
+		ctx.Auth = auth.NewAuthRepository(auth_db, types.DATABASE_SQLITE)
+		ctx.Privs = auth.NewPrivilegeRepository(auth_db, types.DATABASE_SQLITE)
 		ctx.auth_db = auth_db
 
 	case worldconfig.BACKEND_POSTGRES:
@@ -103,13 +105,13 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateAuthDB(auth_db, DATABASE_POSTGRES)
+		err = auth.MigrateAuthDB(auth_db, types.DATABASE_POSTGRES)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Auth = NewAuthRepository(auth_db, DATABASE_POSTGRES)
-		ctx.Privs = NewPrivilegeRepository(auth_db, DATABASE_POSTGRES)
+		ctx.Auth = auth.NewAuthRepository(auth_db, types.DATABASE_POSTGRES)
+		ctx.Privs = auth.NewPrivilegeRepository(auth_db, types.DATABASE_POSTGRES)
 		ctx.auth_db = auth_db
 
 	}
@@ -122,12 +124,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateModStorageDB(mod_storage_db, DATABASE_SQLITE)
+		err = MigrateModStorageDB(mod_storage_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.ModStorage = NewModStorageRepository(mod_storage_db, DATABASE_SQLITE)
+		ctx.ModStorage = NewModStorageRepository(mod_storage_db, types.DATABASE_SQLITE)
 		ctx.mod_storage_db = mod_storage_db
 	}
 
@@ -139,12 +141,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateModStorageDB(player_db, DATABASE_SQLITE)
+		err = MigrateModStorageDB(player_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Player = NewPlayerRepository(player_db, DATABASE_SQLITE)
+		ctx.Player = NewPlayerRepository(player_db, types.DATABASE_SQLITE)
 		ctx.player_db = player_db
 	}
 

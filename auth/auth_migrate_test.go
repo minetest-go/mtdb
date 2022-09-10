@@ -1,4 +1,4 @@
-package mtdb_test
+package auth_test
 
 import (
 	"database/sql"
@@ -6,7 +6,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,12 +16,12 @@ func TestMigrateAuthSQlite(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigrateAuthDB(db, mtdb.DATABASE_SQLITE))
+	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_SQLITE))
 }
 
 func TestMigrateAuthPostgres(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigrateAuthDB(db, mtdb.DATABASE_POSTGRES))
+	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_POSTGRES))
 }

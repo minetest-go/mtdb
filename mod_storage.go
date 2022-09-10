@@ -1,6 +1,10 @@
 package mtdb
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/minetest-go/mtdb/types"
+)
 
 // internal name: "entries"
 type ModStorageEntry struct {
@@ -16,9 +20,9 @@ type ModStorageRepository interface {
 	Delete(modname string, key []byte) error
 }
 
-func NewModStorageRepository(db *sql.DB, dbtype DatabaseType) ModStorageRepository {
+func NewModStorageRepository(db *sql.DB, dbtype types.DatabaseType) ModStorageRepository {
 	switch dbtype {
-	case DATABASE_SQLITE:
+	case types.DATABASE_SQLITE:
 		return &modStorageSqliteRepository{db: db}
 	default:
 		return nil

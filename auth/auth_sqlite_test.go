@@ -1,45 +1,23 @@
-package mtdb_test
+package auth_test
 
 import (
 	"database/sql"
-	"io"
 	"os"
 	"testing"
 
 	_ "modernc.org/sqlite"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
-
-func copyFileContents(src, dst string) (err error) {
-	in, err := os.Open(src)
-	if err != nil {
-		return
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return
-	}
-	defer func() {
-		cerr := out.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-	if _, err = io.Copy(out, in); err != nil {
-		return
-	}
-	err = out.Sync()
-	return
-}
 
 func TestEmptySQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
-	repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
+	repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// no such table
@@ -57,7 +35,7 @@ func TestSQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
+	repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry
@@ -75,7 +53,7 @@ func TestSQliteRepo(t *testing.T) {
 	assert.Nil(t, entry)
 
 	// create entry
-	new_entry := &mtdb.AuthEntry{
+	new_entry := &auth.AuthEntry{
 		Name:      "createduser",
 		Password:  "blah",
 		LastLogin: 456,
@@ -123,7 +101,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := mtdb.NewPrivilegeRepository(db, mtdb.DATABASE_SQLITE)
+	repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// read privs
@@ -140,7 +118,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	assert.True(t, privs["shout"])
 
 	// create
-	assert.NoError(t, repo.Create(&mtdb.PrivilegeEntry{ID: 2, Privilege: "stuff"}))
+	assert.NoError(t, repo.Create(&auth.PrivilegeEntry{ID: 2, Privilege: "stuff"}))
 
 	// verify
 	list, err = repo.GetByID(2)
@@ -179,11 +157,11 @@ func TestSqliteAuthRepo(t *testing.T) {
 	assert.NotNil(t, dbfile)
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	assert.NoError(t, mtdb.MigrateAuthDB(db, mtdb.DATABASE_SQLITE))
+	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_SQLITE))
 	assert.NoError(t, mtdb.EnableWAL(db))
 
-	auth_repo := mtdb.NewAuthRepository(db, mtdb.DATABASE_SQLITE)
-	priv_repo := mtdb.NewPrivilegeRepository(db, mtdb.DATABASE_SQLITE)
+	auth_repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
+	priv_repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)
 
 	testAuthRepository(t, auth_repo, priv_repo)
 }
