@@ -1,4 +1,4 @@
-package mtdb
+package player
 
 import (
 	"database/sql"

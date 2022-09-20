@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
 	"github.com/minetest-go/mtdb/worldconfig"
 	_ "modernc.org/sqlite"
@@ -14,7 +15,7 @@ import (
 type Context struct {
 	Auth           *auth.AuthRepository
 	Privs          *auth.PrivRepository
-	Player         PlayerRepository
+	Player         player.PlayerRepository
 	Blocks         BlockRepository
 	ModStorage     ModStorageRepository
 	map_db         *sql.DB
@@ -146,7 +147,7 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		ctx.Player = NewPlayerRepository(player_db, types.DATABASE_SQLITE)
+		ctx.Player = player.NewPlayerRepository(player_db, types.DATABASE_SQLITE)
 		ctx.player_db = player_db
 	}
 
