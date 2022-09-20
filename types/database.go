@@ -3,6 +3,6 @@ package types
 type DatabaseType string
 
 const (
-	DATABASE_SQLITE   DatabaseType = "sqlite"
-	DATABASE_POSTGRES DatabaseType = "postgres"
+	DATABASE_SQLITE   DatabaseType = "sqlite3"
+	DATABASE_POSTGRES DatabaseType = "postgresql"
 )

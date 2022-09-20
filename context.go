@@ -35,6 +35,48 @@ func (ctx *Context) Close() {
 	ctx.mod_storage_db.Close()
 }
 
+func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn func(*sql.DB, types.DatabaseType) error) (*sql.DB, error) {
+	var datasource string
+	var dbtype string
+
+	switch t {
+	case types.DATABASE_SQLITE:
+		datasource = sqliteConn
+		dbtype = "sqlite"
+	case types.DATABASE_POSTGRES:
+		datasource = psqlConn
+		dbtype = "postgres"
+	default:
+		// db type not configured
+		return nil, nil
+	}
+
+	if t == types.DATABASE_POSTGRES && datasource == "" {
+		// pg connection unconfigured
+		return nil, nil
+	}
+
+	db, err := sql.Open(string(dbtype), datasource)
+	if err != nil {
+		return nil, err
+	}
+
+	if t == types.DATABASE_SQLITE {
+		// enable wal on sqlite databases
+		err = wal.EnableWAL(db)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = migFn(db, t)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 // parses the "world.mt" file in the world-dir and creates a new context
 func New(world_dir string) (*Context, error) {
 	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
@@ -43,115 +85,65 @@ func New(world_dir string) (*Context, error) {
 	}
 	ctx := &Context{}
 
-	//TODO: refactor/minimize repetitive code
-
-	// create map repos
-	switch wc[worldconfig.CONFIG_MAP_BACKEND] {
-	case worldconfig.BACKEND_SQLITE3:
-		map_db, err := sql.Open("sqlite", path.Join(world_dir, "map.sqlite"))
-		if err != nil {
-			return nil, err
-		}
-
-		err = wal.EnableWAL(map_db)
-		if err != nil {
-			return nil, err
-		}
-
-		err = block.MigrateBlockDB(map_db, types.DATABASE_SQLITE)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.Blocks = block.NewBlockRepository(map_db, types.DATABASE_SQLITE)
-		ctx.map_db = map_db
-
-	case worldconfig.BACKEND_POSTGRES:
-		map_db, err := sql.Open("postgres", wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION])
-		if err != nil {
-			return nil, err
-		}
-
-		err = block.MigrateBlockDB(map_db, types.DATABASE_POSTGRES)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.Blocks = block.NewBlockRepository(map_db, types.DATABASE_POSTGRES)
-		ctx.map_db = map_db
+	// map
+	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
+	ctx.map_db, err = connectAndMigrate(
+		dbtype,
+		path.Join(world_dir, "map.sqlite"),
+		wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
+		block.MigrateBlockDB,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if ctx.map_db != nil {
+		ctx.Blocks = block.NewBlockRepository(ctx.map_db, types.DATABASE_SQLITE)
 	}
 
-	// create auth repos
-	switch wc[worldconfig.CONFIG_AUTH_BACKEND] {
-	case worldconfig.BACKEND_SQLITE3:
-		auth_db, err := sql.Open("sqlite", path.Join(world_dir, "auth.sqlite"))
-		if err != nil {
-			return nil, err
-		}
-
-		err = wal.EnableWAL(auth_db)
-		if err != nil {
-			return nil, err
-		}
-
-		err = auth.MigrateAuthDB(auth_db, types.DATABASE_SQLITE)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.Auth = auth.NewAuthRepository(auth_db, types.DATABASE_SQLITE)
-		ctx.Privs = auth.NewPrivilegeRepository(auth_db, types.DATABASE_SQLITE)
-		ctx.auth_db = auth_db
-
-	case worldconfig.BACKEND_POSTGRES:
-		auth_db, err := sql.Open("postgres", wc[worldconfig.CONFIG_PSQL_AUTH_CONNECTION])
-		if err != nil {
-			return nil, err
-		}
-
-		err = auth.MigrateAuthDB(auth_db, types.DATABASE_POSTGRES)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.Auth = auth.NewAuthRepository(auth_db, types.DATABASE_POSTGRES)
-		ctx.Privs = auth.NewPrivilegeRepository(auth_db, types.DATABASE_POSTGRES)
-		ctx.auth_db = auth_db
-
+	// auth/privs
+	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_AUTH_BACKEND])
+	ctx.auth_db, err = connectAndMigrate(
+		dbtype,
+		path.Join(world_dir, "auth.sqlite"),
+		wc[worldconfig.CONFIG_PSQL_AUTH_CONNECTION],
+		auth.MigrateAuthDB,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if ctx.auth_db != nil {
+		ctx.Auth = auth.NewAuthRepository(ctx.auth_db, dbtype)
+		ctx.Privs = auth.NewPrivilegeRepository(ctx.auth_db, dbtype)
 	}
 
 	// mod storage
-	switch wc[worldconfig.CONFIG_STORAGE_BACKEND] {
-	case worldconfig.BACKEND_SQLITE3:
-		mod_storage_db, err := sql.Open("sqlite", path.Join(world_dir, "mod_storage.sqlite"))
-		if err != nil {
-			return nil, err
-		}
-
-		err = mod_storage.MigrateModStorageDB(mod_storage_db, types.DATABASE_SQLITE)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.ModStorage = mod_storage.NewModStorageRepository(mod_storage_db, types.DATABASE_SQLITE)
-		ctx.mod_storage_db = mod_storage_db
+	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_STORAGE_BACKEND])
+	ctx.mod_storage_db, err = connectAndMigrate(
+		dbtype,
+		path.Join(world_dir, "mod_storage.sqlite"),
+		"not implemented",
+		mod_storage.MigrateModStorageDB,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if ctx.mod_storage_db != nil {
+		ctx.ModStorage = mod_storage.NewModStorageRepository(ctx.mod_storage_db, dbtype)
 	}
 
 	// players
-	switch wc[worldconfig.CONFIG_PLAYER_BACKEND] {
-	case worldconfig.BACKEND_SQLITE3:
-		player_db, err := sql.Open("sqlite", path.Join(world_dir, "players.sqlite"))
-		if err != nil {
-			return nil, err
-		}
-
-		err = mod_storage.MigrateModStorageDB(player_db, types.DATABASE_SQLITE)
-		if err != nil {
-			return nil, err
-		}
-
-		ctx.Player = player.NewPlayerRepository(player_db, types.DATABASE_SQLITE)
-		ctx.player_db = player_db
+	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_PLAYER_BACKEND])
+	ctx.player_db, err = connectAndMigrate(
+		dbtype,
+		path.Join(world_dir, "players.sqlite"),
+		wc[worldconfig.CONFIG_PSQL_PLAYER_CONNECTION],
+		player.MigratePlayerDB,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if ctx.player_db != nil {
+		ctx.Player = player.NewPlayerRepository(ctx.player_db, dbtype)
 	}
 
 	return ctx, nil
