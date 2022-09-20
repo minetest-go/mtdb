@@ -1,4 +1,4 @@
-package mtdb
+package wal
 
 import (
 	"database/sql"

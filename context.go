@@ -10,6 +10,7 @@ import (
 	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
+	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	_ "modernc.org/sqlite"
 )
@@ -52,7 +53,7 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = EnableWAL(map_db)
+		err = wal.EnableWAL(map_db)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +89,7 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = EnableWAL(auth_db)
+		err = wal.EnableWAL(auth_db)
 		if err != nil {
 			return nil, err
 		}

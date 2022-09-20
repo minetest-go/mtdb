@@ -7,9 +7,9 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/minetest-go/mtdb"
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/types"
+	"github.com/minetest-go/mtdb/wal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -158,7 +158,7 @@ func TestSqliteAuthRepo(t *testing.T) {
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_SQLITE))
-	assert.NoError(t, mtdb.EnableWAL(db))
+	assert.NoError(t, wal.EnableWAL(db))
 
 	auth_repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	priv_repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)

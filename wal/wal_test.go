@@ -1,4 +1,4 @@
-package mtdb_test
+package wal_test
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/wal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +19,7 @@ func TestCheckJournalModeDelete(t *testing.T) {
 
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
-	assert.Error(t, mtdb.EnableWAL(db))
+	assert.Error(t, wal.EnableWAL(db))
 }
 
 func TestCheckJournalModeWal(t *testing.T) {
@@ -30,5 +30,5 @@ func TestCheckJournalModeWal(t *testing.T) {
 
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
-	assert.NoError(t, mtdb.EnableWAL(db))
+	assert.NoError(t, wal.EnableWAL(db))
 }
