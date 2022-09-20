@@ -13,6 +13,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNoConfig(t *testing.T) {
+	tmpdir, err := os.MkdirTemp(os.TempDir(), "mtdb")
+	assert.NoError(t, err)
+
+	repos, err := mtdb.New(tmpdir)
+	assert.Error(t, err)
+	assert.Nil(t, repos)
+}
+
 func TestNewSqlite(t *testing.T) {
 	tmpdir := os.TempDir()
 	contents := `
@@ -30,6 +39,8 @@ mod_storage_backend = sqlite3
 	assert.NotNil(t, repos.Auth)
 	assert.NotNil(t, repos.Privs)
 	assert.NotNil(t, repos.Blocks)
+	assert.NotNil(t, repos.Player)
+	assert.NotNil(t, repos.ModStorage)
 }
 
 func TestNewPostgres(t *testing.T) {
@@ -62,4 +73,6 @@ player_backend = postgresql
 	assert.NotNil(t, repos.Auth)
 	assert.NotNil(t, repos.Privs)
 	assert.NotNil(t, repos.Blocks)
+	//assert.NotNil(t, repos.Player)
+	//assert.NotNil(t, repos.ModStorage)
 }

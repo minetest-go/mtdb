@@ -40,15 +40,13 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	var dbtype string
 
 	switch t {
-	case types.DATABASE_SQLITE:
-		datasource = sqliteConn
-		dbtype = "sqlite"
 	case types.DATABASE_POSTGRES:
 		datasource = psqlConn
 		dbtype = "postgres"
 	default:
-		// db type not configured
-		return nil, nil
+		// default to sqlite
+		datasource = sqliteConn
+		dbtype = "sqlite"
 	}
 
 	if t == types.DATABASE_POSTGRES && datasource == "" {
