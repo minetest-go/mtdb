@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestInvalidFile(t *testing.T) {
+	cfg, err := worldconfig.Parse("./testdata/non-existing.file")
+	assert.Error(t, err)
+	assert.Nil(t, cfg)
+}
+
 func TestParseSqlite(t *testing.T) {
 	cfg, err := worldconfig.Parse("./testdata/world.mt.sqlite")
 	assert.NoError(t, err)
