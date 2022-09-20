@@ -1,10 +1,12 @@
-package mtdb_test
+package mod_storage_test
 
 import (
 	"database/sql"
 	"testing"
 
-	"github.com/minetest-go/mtdb"
+	_ "modernc.org/sqlite"
+
+	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,5 +16,5 @@ func TestMigrateModStorageSQlite(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
-	assert.NoError(t, mtdb.MigrateModStorageDB(db, types.DATABASE_SQLITE))
+	assert.NoError(t, mod_storage.MigrateModStorageDB(db, types.DATABASE_SQLITE))
 }

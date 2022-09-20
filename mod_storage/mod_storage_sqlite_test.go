@@ -1,11 +1,13 @@
-package mtdb_test
+package mod_storage_test
 
 import (
 	"database/sql"
 	"os"
 	"testing"
 
-	"github.com/minetest-go/mtdb"
+	_ "modernc.org/sqlite"
+
+	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +22,7 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	// open db
 	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
-	repo := mtdb.NewModStorageRepository(db, types.DATABASE_SQLITE)
+	repo := mod_storage.NewModStorageRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
 	// existing entry
@@ -30,7 +32,7 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	assert.Equal(t, []byte("return {[\"singleplayer\"] = {[\"waypoints\"] = {}}}"), entry.Value)
 
 	// create
-	entry = &mtdb.ModStorageEntry{
+	entry = &mod_storage.ModStorageEntry{
 		ModName: "mymod",
 		Key:     []byte("mykey"),
 		Value:   []byte("myvalue"),

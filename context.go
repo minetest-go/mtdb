@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
 	"github.com/minetest-go/mtdb/worldconfig"
@@ -17,7 +18,7 @@ type Context struct {
 	Privs          *auth.PrivRepository
 	Player         player.PlayerRepository
 	Blocks         BlockRepository
-	ModStorage     ModStorageRepository
+	ModStorage     mod_storage.ModStorageRepository
 	map_db         *sql.DB
 	player_db      *sql.DB
 	auth_db        *sql.DB
@@ -125,12 +126,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateModStorageDB(mod_storage_db, types.DATABASE_SQLITE)
+		err = mod_storage.MigrateModStorageDB(mod_storage_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.ModStorage = NewModStorageRepository(mod_storage_db, types.DATABASE_SQLITE)
+		ctx.ModStorage = mod_storage.NewModStorageRepository(mod_storage_db, types.DATABASE_SQLITE)
 		ctx.mod_storage_db = mod_storage_db
 	}
 
@@ -142,7 +143,7 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateModStorageDB(player_db, types.DATABASE_SQLITE)
+		err = mod_storage.MigrateModStorageDB(player_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}

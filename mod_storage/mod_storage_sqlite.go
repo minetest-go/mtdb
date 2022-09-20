@@ -1,4 +1,4 @@
-package mtdb
+package mod_storage
 
 import "database/sql"
 
