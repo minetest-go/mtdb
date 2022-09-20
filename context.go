@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
@@ -17,7 +18,7 @@ type Context struct {
 	Auth           *auth.AuthRepository
 	Privs          *auth.PrivRepository
 	Player         player.PlayerRepository
-	Blocks         BlockRepository
+	Blocks         block.BlockRepository
 	ModStorage     mod_storage.ModStorageRepository
 	map_db         *sql.DB
 	player_db      *sql.DB
@@ -56,12 +57,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateBlockDB(map_db, types.DATABASE_SQLITE)
+		err = block.MigrateBlockDB(map_db, types.DATABASE_SQLITE)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Blocks = NewBlockRepository(map_db, types.DATABASE_SQLITE)
+		ctx.Blocks = block.NewBlockRepository(map_db, types.DATABASE_SQLITE)
 		ctx.map_db = map_db
 
 	case worldconfig.BACKEND_POSTGRES:
@@ -70,12 +71,12 @@ func New(world_dir string) (*Context, error) {
 			return nil, err
 		}
 
-		err = MigrateBlockDB(map_db, types.DATABASE_POSTGRES)
+		err = block.MigrateBlockDB(map_db, types.DATABASE_POSTGRES)
 		if err != nil {
 			return nil, err
 		}
 
-		ctx.Blocks = NewBlockRepository(map_db, types.DATABASE_POSTGRES)
+		ctx.Blocks = block.NewBlockRepository(map_db, types.DATABASE_POSTGRES)
 		ctx.map_db = map_db
 	}
 
