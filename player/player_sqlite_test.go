@@ -54,3 +54,13 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, p)
 }
+
+func TestSQlitePlayerRepo2(t *testing.T) {
+	// open db
+	db, err := sql.Open("sqlite", ":memory:")
+	assert.NoError(t, err)
+
+	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
+	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
+	testRepository(t, repo)
+}

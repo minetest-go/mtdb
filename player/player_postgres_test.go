@@ -19,5 +19,7 @@ func TestPostgresPlayerRepo(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
-	// TODO
+
+	repo := player.NewPlayerRepository(db, types.DATABASE_POSTGRES)
+	testRepository(t, repo)
 }
