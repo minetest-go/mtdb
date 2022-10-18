@@ -18,7 +18,8 @@ import (
 type Context struct {
 	Auth           *auth.AuthRepository
 	Privs          *auth.PrivRepository
-	Player         player.PlayerRepository
+	Player         *player.PlayerRepository
+	PlayerMetadata *player.PlayerMetadataRepository
 	Blocks         block.BlockRepository
 	ModStorage     mod_storage.ModStorageRepository
 	map_db         *sql.DB
@@ -142,6 +143,7 @@ func New(world_dir string) (*Context, error) {
 	}
 	if ctx.player_db != nil {
 		ctx.Player = player.NewPlayerRepository(ctx.player_db, dbtype)
+		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(ctx.player_db, dbtype)
 	}
 
 	return ctx, nil

@@ -40,6 +40,7 @@ mod_storage_backend = sqlite3
 	assert.NotNil(t, repos.Privs)
 	assert.NotNil(t, repos.Blocks)
 	assert.NotNil(t, repos.Player)
+	assert.NotNil(t, repos.PlayerMetadata)
 	assert.NotNil(t, repos.ModStorage)
 }
 
@@ -63,6 +64,7 @@ pgsql_connection = ` + connStr + `
 auth_backend = postgresql
 pgsql_auth_connection = ` + connStr + `
 player_backend = postgresql
+pgsql_player_connection = ` + connStr + `
 	`
 	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
 	assert.NoError(t, err)
@@ -73,6 +75,7 @@ player_backend = postgresql
 	assert.NotNil(t, repos.Auth)
 	assert.NotNil(t, repos.Privs)
 	assert.NotNil(t, repos.Blocks)
-	//assert.NotNil(t, repos.Player)
+	assert.NotNil(t, repos.Player)
+	assert.NotNil(t, repos.PlayerMetadata)
 	//assert.NotNil(t, repos.ModStorage)
 }

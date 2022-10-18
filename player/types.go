@@ -33,8 +33,3 @@ type PlayerInventoryItems struct {
 	SlotID int    `json:"slot_id"`
 	Item   string `json:"item"`
 }
-
-type PlayerRepository interface {
-	GetPlayer(name string) (*Player, error)
-	CreateOrUpdate(p *Player) error
-}

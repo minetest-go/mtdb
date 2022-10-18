@@ -1,15 +1,21 @@
 package player_test
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
+	"os"
 	"testing"
 
+	_ "github.com/lib/pq"
+	_ "modernc.org/sqlite"
+
 	"github.com/minetest-go/mtdb/player"
+	"github.com/minetest-go/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 
-func testRepository(t *testing.T, repo player.PlayerRepository) {
+func testRepository(t *testing.T, repo *player.PlayerRepository) {
 	assert.NotNil(t, repo)
 
 	p1 := &player.Player{
@@ -36,4 +42,73 @@ func testRepository(t *testing.T, repo player.PlayerRepository) {
 	assert.Equal(t, p1.CreationDate, p2.CreationDate)
 	assert.Equal(t, p1.ModificationDate, p2.ModificationDate)
 	assert.Equal(t, p1.Name, p2.Name)
+}
+
+func TestSQliteMigratePlayer(t *testing.T) {
+	// open db
+	db, err := sql.Open("sqlite", ":memory:")
+	assert.NoError(t, err)
+
+	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
+}
+
+func TestSqlitePlayerRepo(t *testing.T) {
+	// init stuff
+	dbfile, err := os.CreateTemp(os.TempDir(), "players.sqlite")
+	assert.NoError(t, err)
+	assert.NotNil(t, dbfile)
+	copyFileContents("testdata/players.sqlite", dbfile.Name())
+
+	// open db
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	assert.NoError(t, err)
+	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
+	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
+	assert.NotNil(t, repo)
+
+	// existing entry
+	p, err := repo.GetPlayer("singleplayer")
+	assert.NoError(t, err)
+	assert.NotNil(t, p)
+	assert.Equal(t, "singleplayer", p.Name)
+	assert.InDelta(t, 7.17000007629395, p.Pitch, 0.01)
+	assert.InDelta(t, 272.760009765625, p.Yaw, 0.01)
+	assert.InDelta(t, -1631.63000488281, p.PosX, 0.01)
+	assert.InDelta(t, 196.210006713867, p.PosY, 0.01)
+	assert.InDelta(t, -430.440002441406, p.PosZ, 0.01)
+	assert.Equal(t, 20, p.HP)
+	assert.Equal(t, 10, p.Breath)
+	assert.Equal(t, int64(1648301850), p.CreationDate)
+	assert.Equal(t, int64(1652728478), p.ModificationDate)
+
+	// non-existing entry
+	p, err = repo.GetPlayer("dummy")
+	assert.NoError(t, err)
+	assert.Nil(t, p)
+}
+
+func TestSQlitePlayerRepo2(t *testing.T) {
+	// open db
+	db, err := sql.Open("sqlite", ":memory:")
+	assert.NoError(t, err)
+
+	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
+	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
+	testRepository(t, repo)
+}
+
+func TestPostgresMigratePlayer(t *testing.T) {
+	db, err := getPostgresDB(t)
+	assert.NoError(t, err)
+
+	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_POSTGRES))
+}
+
+func TestPostgresPlayerRepo(t *testing.T) {
+	db, err := getPostgresDB(t)
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
+
+	repo := player.NewPlayerRepository(db, types.DATABASE_POSTGRES)
+	testRepository(t, repo)
 }
