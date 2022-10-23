@@ -29,10 +29,34 @@ func testAuthRepository(t *testing.T, auth_repo *auth.AuthRepository, priv_repo 
 	assert.NoError(t, auth_repo.Create(e))
 	assert.NotNil(t, e.ID)
 
-	// search
+	// search 1
 	s_username := "te%"
 	list, err := auth_repo.Search(&auth.AuthSearch{
 		Usernamelike: &s_username,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, len(list))
+
+	// search 2
+	orderCol := auth.Name
+	orderDir := auth.Ascending
+	list, err = auth_repo.Search(&auth.AuthSearch{
+		Usernamelike:   &s_username,
+		OrderColumn:    &orderCol,
+		OrderDirection: &orderDir,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, len(list))
+
+	// search 3
+	orderCol = auth.LastLogin
+	orderDir = auth.Descending
+	list, err = auth_repo.Search(&auth.AuthSearch{
+		Usernamelike:   &s_username,
+		OrderColumn:    &orderCol,
+		OrderDirection: &orderDir,
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, list)

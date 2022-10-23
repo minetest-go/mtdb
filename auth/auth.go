@@ -32,9 +32,32 @@ func (repo *AuthRepository) GetByUsername(username string) (*AuthEntry, error) {
 	return entry, err
 }
 
+type OrderColumnType string
+type OrderDirectionType string
+
+const (
+	LastLogin  OrderColumnType    = "last_login"
+	Name       OrderColumnType    = "name"
+	Ascending  OrderDirectionType = "asc"
+	Descending OrderDirectionType = "desc"
+)
+
+var orderColumns = map[string]bool{
+	string(LastLogin): true,
+	string(Name):      true,
+}
+
+var orderDirections = map[string]bool{
+	string(Ascending):  true,
+	string(Descending): true,
+}
+
 type AuthSearch struct {
-	Usernamelike *string `json:"usernamelike"`
-	Username     *string `json:"username"`
+	Usernamelike   *string             `json:"usernamelike"`
+	Username       *string             `json:"username"`
+	Limit          *int                `json:"limit"`
+	OrderColumn    *OrderColumnType    `json:"order_column"`
+	OrderDirection *OrderDirectionType `json:"order_direction"`
 }
 
 func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (string, []interface{}) {
@@ -54,8 +77,21 @@ func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (stri
 		i++
 	}
 
+	if s.OrderColumn != nil && orderColumns[string(*s.OrderColumn)] {
+		order := Ascending
+		if s.OrderDirection != nil && orderDirections[string(*s.OrderDirection)] {
+			order = *s.OrderDirection
+		}
+
+		q += fmt.Sprintf(" order by %s %s", *s.OrderColumn, order)
+	}
+
 	// limit result length to 1000 per default
-	q += " limit 1000"
+	limit := 1000
+	if s.Limit != nil {
+		limit = *s.Limit
+	}
+	q += fmt.Sprintf(" limit %d", limit)
 
 	return q, args
 }
