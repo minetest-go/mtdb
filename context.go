@@ -41,6 +41,8 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	var dbtype string
 
 	switch t {
+	case types.DATABASE_DUMMY:
+		return nil, nil
 	case types.DATABASE_POSTGRES:
 		datasource = psqlConn
 		dbtype = "postgres"
