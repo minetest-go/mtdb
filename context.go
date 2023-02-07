@@ -98,7 +98,7 @@ func New(world_dir string) (*Context, error) {
 		return nil, err
 	}
 	if ctx.map_db != nil {
-		ctx.Blocks = block.NewBlockRepository(ctx.map_db, types.DATABASE_SQLITE)
+		ctx.Blocks = block.NewBlockRepository(ctx.map_db, dbtype)
 	}
 
 	// auth/privs
@@ -149,4 +149,27 @@ func New(world_dir string) (*Context, error) {
 	}
 
 	return ctx, nil
+}
+
+func NewBlockDB(world_dir string) (block.BlockRepository, error) {
+	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
+	if err != nil {
+		return nil, err
+	}
+
+	// map
+	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
+	map_db, err := connectAndMigrate(
+		dbtype,
+		path.Join(world_dir, "map.sqlite"),
+		wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
+		block.MigrateBlockDB,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if map_db != nil {
+		return block.NewBlockRepository(map_db, dbtype), nil
+	}
+	return nil, nil
 }

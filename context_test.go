@@ -13,6 +13,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func repoSmokeTests(t *testing.T, repos *mtdb.Context) {
+	p, err := repos.Player.GetPlayer("nonexistent")
+	assert.NoError(t, err)
+	assert.Nil(t, p)
+
+	m, err := repos.PlayerMetadata.GetPlayerMetadata("nonexistent")
+	assert.NoError(t, err)
+	assert.NotNil(t, m)
+	assert.Equal(t, 0, len(m))
+
+	a, err := repos.Auth.GetByUsername("nonexistent")
+	assert.NoError(t, err)
+	assert.Nil(t, a)
+}
+
 func TestNoConfig(t *testing.T) {
 	tmpdir, err := os.MkdirTemp(os.TempDir(), "mtdb")
 	assert.NoError(t, err)
@@ -42,6 +57,32 @@ mod_storage_backend = sqlite3
 	assert.NotNil(t, repos.Player)
 	assert.NotNil(t, repos.PlayerMetadata)
 	assert.NotNil(t, repos.ModStorage)
+
+	repoSmokeTests(t, repos)
+}
+
+func TestNewSqliteWithDummyMap(t *testing.T) {
+	tmpdir := os.TempDir()
+	contents := `
+backend = dummy
+auth_backend = sqlite3
+player_backend = sqlite3
+mod_storage_backend = sqlite3
+	`
+	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
+	assert.NoError(t, err)
+
+	repos, err := mtdb.New(tmpdir)
+	assert.NoError(t, err)
+	assert.NotNil(t, repos)
+	assert.NotNil(t, repos.Auth)
+	assert.NotNil(t, repos.Privs)
+	assert.Nil(t, repos.Blocks)
+	assert.NotNil(t, repos.Player)
+	assert.NotNil(t, repos.PlayerMetadata)
+	assert.NotNil(t, repos.ModStorage)
+
+	repoSmokeTests(t, repos)
 }
 
 func TestNewPostgres(t *testing.T) {
@@ -78,4 +119,6 @@ pgsql_player_connection = ` + connStr + `
 	assert.NotNil(t, repos.Player)
 	assert.NotNil(t, repos.PlayerMetadata)
 	//assert.NotNil(t, repos.ModStorage)
+
+	repoSmokeTests(t, repos)
 }
