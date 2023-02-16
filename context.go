@@ -88,11 +88,15 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 // parses the "world.mt" file in the world-dir and creates a new context
 func New(world_dir string) (*Context, error) {
 
-	logrus.WithFields(logrus.Fields{"world_dir": world_dir}).Debug("Creating new DB context")
 	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
 	if err != nil {
 		return nil, err
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"world_dir": world_dir,
+		"world.mt":  wc,
+	}).Debug("Creating new DB context")
 	ctx := &Context{}
 
 	// map
