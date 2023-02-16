@@ -12,6 +12,7 @@ import (
 	"github.com/minetest-go/mtdb/types"
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
+	"github.com/sirupsen/logrus"
 	_ "modernc.org/sqlite"
 )
 
@@ -39,6 +40,12 @@ func (ctx *Context) Close() {
 func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn func(*sql.DB, types.DatabaseType) error) (*sql.DB, error) {
 	var datasource string
 	var dbtype string
+
+	logrus.WithFields(logrus.Fields{
+		"db_type":     t,
+		"sqlite_conn": sqliteConn,
+		"pg_conn":     psqlConn,
+	}).Debug("Connecting and migrating")
 
 	switch t {
 	case types.DATABASE_DUMMY:
@@ -80,6 +87,8 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 
 // parses the "world.mt" file in the world-dir and creates a new context
 func New(world_dir string) (*Context, error) {
+
+	logrus.WithFields(logrus.Fields{"world_dir": world_dir}).Debug("Creating new DB context")
 	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
 	if err != nil {
 		return nil, err
@@ -152,6 +161,8 @@ func New(world_dir string) (*Context, error) {
 }
 
 func NewBlockDB(world_dir string) (block.BlockRepository, error) {
+	logrus.WithFields(logrus.Fields{"world_dir": world_dir}).Debug("Creating new Block-DB")
+
 	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
 	if err != nil {
 		return nil, err
