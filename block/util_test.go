@@ -3,7 +3,6 @@ package block_test
 import (
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 	"testing"
 
@@ -24,27 +23,4 @@ func getPostgresDB(t *testing.T) (*sql.DB, error) {
 		os.Getenv("PGDATABASE"))
 
 	return sql.Open("postgres", connStr)
-}
-
-func copyFileContents(src, dst string) (err error) {
-	in, err := os.Open(src)
-	if err != nil {
-		return
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return
-	}
-	defer func() {
-		cerr := out.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-	if _, err = io.Copy(out, in); err != nil {
-		return
-	}
-	err = out.Sync()
-	return
 }
