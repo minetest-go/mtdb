@@ -13,6 +13,7 @@ func (repo *postgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	if !rows.Next() {
 		return nil, nil
 	}

@@ -23,7 +23,7 @@ services:
    - PGPORT=5432
    - LOGLEVEL=debug
   working_dir: /data
-  command: ["go", "test", "./...", "-cover"]
+  command: ["go", "test", "./...", "-v", "-cover"]
 
 volumes:
   postgres: {}
