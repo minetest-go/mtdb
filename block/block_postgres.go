@@ -31,3 +31,8 @@ func (repo *postgresBlockRepository) Delete(x, y, z int) error {
 	_, err := repo.db.Exec("delete from blocks where posX=$1 and posY=$2 and posZ=$3", x, y, z)
 	return err
 }
+
+func (repo *postgresBlockRepository) Vacuum() error {
+	_, err := repo.db.Exec("vacuum")
+	return err
+}

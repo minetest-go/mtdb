@@ -46,4 +46,6 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 	assert.NoError(t, err)
 	assert.Nil(t, b)
 
+	// vacuum
+	assert.NoError(t, block_repo.Vacuum())
 }

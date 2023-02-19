@@ -6,7 +6,7 @@ type sqliteBlockRepository struct {
 	db *sql.DB
 }
 
-//https://bitbucket.org/s_l_teichmann/mtsatellite/src/e1bf980a2b278c570b3f44f9452c9c087558acb3/common/coords.go?at=default&fileviewer=file-view-default
+// https://bitbucket.org/s_l_teichmann/mtsatellite/src/e1bf980a2b278c570b3f44f9452c9c087558acb3/common/coords.go?at=default&fileviewer=file-view-default
 const (
 	numBitsPerComponent = 12
 	modulo              = 1 << numBitsPerComponent
@@ -72,5 +72,10 @@ func (repo *sqliteBlockRepository) Update(block *Block) error {
 func (repo *sqliteBlockRepository) Delete(x, y, z int) error {
 	pos := CoordToPlain(x, y, z)
 	_, err := repo.db.Exec("delete from blocks where pos=$1", pos)
+	return err
+}
+
+func (repo *sqliteBlockRepository) Vacuum() error {
+	_, err := repo.db.Exec("vacuum")
 	return err
 }
