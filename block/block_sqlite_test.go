@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSqliteBlockRepo(t *testing.T) {
-	// open db
+func setupSqlite(t *testing.T) (block.BlockRepository, *sql.DB) {
 	dbfile, err := os.CreateTemp(os.TempDir(), "map.sqlite")
 	assert.NoError(t, err)
 	assert.NotNil(t, dbfile)
@@ -24,5 +23,43 @@ func TestSqliteBlockRepo(t *testing.T) {
 
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_SQLITE))
 	blocks_repo := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	return blocks_repo, db
+}
+
+func TestSqliteBlockRepo(t *testing.T) {
+	// open db
+	blocks_repo, _ := setupSqlite(t)
 	testBlocksRepository(t, blocks_repo)
+}
+
+func TestSqliteIterator(t *testing.T) {
+	blocks_repo, _ := setupSqlite(t)
+	testBlocksRepositoryIterator(t, blocks_repo)
+}
+
+func TestCoordToPlain(t *testing.T) {
+	nodes := []struct {
+		x, y, z int
+	}{
+		{0, 0, 0},
+		{1, -1, 1},
+		{-1, -1, -1},
+
+		{30912, 30912, 30912},
+		{-30912, -30912, -30912},
+	}
+
+	for i, tc := range nodes {
+		t.Logf("Test case: #%d", i)
+
+		x1, y1, z1 := block.NodeToBlock(tc.x, tc.y, tc.z)
+		pos := block.CoordToPlain(x1, y1, z1)
+		x2, y2, z2 := block.PlainToCoord(pos)
+
+		t.Logf("in=%v,%v,%v => pos=%v => out=%v,%v,%v", x1, y1, z1, pos, x2, y2, z2)
+		if x1 != x2 || y1 != y2 || z1 != z2 {
+			t.Errorf("Unexpected coord returned from pos:"+
+				"x=%v,y=%v=z=%v => x=%v, y=%v, z=%v", x1, y1, z1, x2, y2, z2)
+		}
+	}
 }

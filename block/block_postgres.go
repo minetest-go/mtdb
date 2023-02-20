@@ -2,6 +2,8 @@ package block
 
 import (
 	"database/sql"
+
+	"github.com/sirupsen/logrus"
 )
 
 type postgresBlockRepository struct {
@@ -20,6 +22,47 @@ func (repo *postgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	entry := &Block{}
 	err = rows.Scan(&entry.PosX, &entry.PosY, &entry.PosZ, &entry.Data)
 	return entry, err
+}
+
+func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
+	rows, err := repo.db.Query(`
+		SELECT posX, posY, posZ, data
+		FROM blocks
+		WHERE posX >= $1 AND posY >= $2 AND posZ >= $3
+		ORDER BY posX, posY, posZ
+		`, x, y, z)
+	if err != nil {
+		return nil, err
+	}
+
+	l := logrus.WithField("iterating_from", []int{x, y, z})
+	ch := make(chan *Block)
+	count := int64(0)
+
+	// Spawn go routine to fetch rows and send to channel
+	go func() {
+		defer close(ch)
+		defer rows.Close()
+
+		l.Debug("Retrieving database rows")
+		for rows.Next() {
+			// Debug progress while fetching rows every 100's
+			count++
+			if count%100 == 0 {
+				l.Debugf("Retrieved %d records so far", count)
+			}
+			// Fetch and send to channel
+			b := &Block{}
+			if err = rows.Scan(&b.PosX, &b.PosY, &b.PosZ, &b.Data); err != nil {
+				l.Errorf("Failed to read next item from iterator: %v", err)
+			}
+			ch <- b
+		}
+		l.Debug("Iterator finished, closing up rows and channel")
+	}()
+
+	// Return channel to main component
+	return ch, nil
 }
 
 func (repo *postgresBlockRepository) Update(block *Block) error {

@@ -1,6 +1,7 @@
 package block_test
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/minetest-go/mtdb/block"
@@ -8,26 +9,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostgresBlocksRepo(t *testing.T) {
+func setupPostgress(t *testing.T) (block.BlockRepository, *sql.DB) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 
+	// Cleanup any previous data
+	db.Exec("delete from blocks")
+
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_POSTGRES))
 	blocks_repo := block.NewBlockRepository(db, types.DATABASE_POSTGRES)
+
+	assert.NotNil(t, blocks_repo)
+	return blocks_repo, db
+}
+
+func TestPostgresBlocksRepo(t *testing.T) {
+	blocks_repo, _ := setupPostgress(t)
 	testBlocksRepository(t, blocks_repo)
 }
 
-func TestMaxConnections(t *testing.T) {
-	db, err := getPostgresDB(t)
-	assert.NoError(t, err)
-
-	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_POSTGRES))
-	blocks_repo := block.NewBlockRepository(db, types.DATABASE_POSTGRES)
-	assert.NotNil(t, blocks_repo)
+func TestPostgresMaxConnections(t *testing.T) {
+	blocks_repo, db := setupPostgress(t)
 
 	var maxConnections int
 	row := db.QueryRow("show max_connections;")
-	err = row.Scan(&maxConnections)
+	err := row.Scan(&maxConnections)
 	assert.NoError(t, err)
 	t.Logf("Testing against %v max connections", maxConnections)
 
@@ -54,4 +60,9 @@ func TestMaxConnections(t *testing.T) {
 			break
 		}
 	}
+}
+
+func TestPostgresIterator(t *testing.T) {
+	blocks_repo, _ := setupPostgress(t)
+	testBlocksRepositoryIterator(t, blocks_repo)
 }

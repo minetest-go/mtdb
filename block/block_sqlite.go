@@ -1,6 +1,10 @@
 package block
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/sirupsen/logrus"
+)
 
 type sqliteBlockRepository struct {
 	db *sql.DB
@@ -61,6 +65,51 @@ func (repo *sqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	err = rows.Scan(&pos, &entry.Data)
 	entry.PosX, entry.PosY, entry.PosZ = PlainToCoord(pos)
 	return entry, err
+}
+
+func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
+	pos := CoordToPlain(x, y, z)
+	rows, err := repo.db.Query(`
+		SELECT pos, data
+		FROM blocks
+		WHERE pos >= $1
+		ORDER BY pos
+		`, pos)
+	if err != nil {
+		return nil, err
+	}
+
+	l := logrus.
+		WithField("iterating_from", []int{x, y, z}).
+		WithField("pos", pos)
+	ch := make(chan *Block)
+	count := int64(0)
+
+	// Spawn go routine to fetch rows and send to channel
+	go func() {
+		defer close(ch)
+		defer rows.Close()
+
+		l.Debug("Retrieving database rows")
+		for rows.Next() {
+			// Debug progress while fetching rows every 100's
+			count++
+			if count%100 == 0 {
+				l.Debugf("Retrieved %d records so far", count)
+			}
+			// Fetch and send to channel
+			b := &Block{}
+			if err = rows.Scan(&pos, &b.Data); err != nil {
+				l.Errorf("Failed to read next item from iterator: %v", err)
+			}
+			b.PosX, b.PosY, b.PosZ = PlainToCoord(pos)
+			ch <- b
+		}
+		l.Debug("Iterator finished, closing up rows and channel")
+	}()
+
+	// Return channel to main component
+	return ch, nil
 }
 
 func (repo *sqliteBlockRepository) Update(block *Block) error {
