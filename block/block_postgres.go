@@ -57,7 +57,7 @@ func (r *postgresBlockRepository) Export(z *zip.Writer) error {
 
 	for rows.Next() {
 		block := &Block{}
-		err = rows.Scan(&block.PosX, &block.PosX, &block.PosY, &block.PosZ)
+		err = rows.Scan(&block.PosX, &block.PosY, &block.PosZ, &block.Data)
 		if err != nil {
 			return err
 		}
