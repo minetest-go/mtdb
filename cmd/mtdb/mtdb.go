@@ -51,7 +51,7 @@ func main() {
 	}
 
 	if *export != "" {
-		fmt.Printf("Export database to '%s'\n", *export)
+		fmt.Printf("Exporting database to '%s'\n", *export)
 		f, err := os.Create(*export)
 		if err != nil {
 			panic(err)
