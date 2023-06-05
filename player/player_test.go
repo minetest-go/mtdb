@@ -1,6 +1,8 @@
 package player_test
 
 import (
+	"archive/zip"
+	"bytes"
 	"database/sql"
 	"fmt"
 	"math/rand"
@@ -85,6 +87,27 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	p, err = repo.GetPlayer("dummy")
 	assert.NoError(t, err)
 	assert.Nil(t, p)
+
+	// export
+	buf := bytes.NewBuffer([]byte{})
+	w := zip.NewWriter(buf)
+	err = repo.Export(w)
+	assert.NoError(t, err)
+	err = w.Close()
+	assert.NoError(t, err)
+	zipfile, err := os.CreateTemp(os.TempDir(), "player.zip")
+	assert.NoError(t, err)
+	f, err := os.Create(zipfile.Name())
+	assert.NoError(t, err)
+	count, err := f.Write(buf.Bytes())
+	assert.NoError(t, err)
+	assert.True(t, count > 0)
+
+	// import
+	z, err := zip.OpenReader(zipfile.Name())
+	assert.NoError(t, err)
+	err = repo.Import(&z.Reader)
+	assert.NoError(t, err)
 }
 
 func TestSQlitePlayerRepo2(t *testing.T) {

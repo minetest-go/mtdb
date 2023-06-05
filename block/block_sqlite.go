@@ -1,6 +1,12 @@
 package block
 
-import "database/sql"
+import (
+	"archive/zip"
+	"bufio"
+	"bytes"
+	"database/sql"
+	"encoding/json"
+)
 
 type sqliteBlockRepository struct {
 	db *sql.DB
@@ -78,4 +84,64 @@ func (repo *sqliteBlockRepository) Delete(x, y, z int) error {
 func (repo *sqliteBlockRepository) Vacuum() error {
 	_, err := repo.db.Exec("vacuum")
 	return err
+}
+
+func (r *sqliteBlockRepository) Export(z *zip.Writer) error {
+	w, err := z.Create("blocks.json")
+	if err != nil {
+		return err
+	}
+	enc := json.NewEncoder(w)
+
+	rows, err := r.db.Query("select pos from blocks")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var pos int64
+		err = rows.Scan(&pos)
+		if err != nil {
+			return err
+		}
+
+		x, y, z := PlainToCoord(pos)
+		block, err := r.GetByPos(x, y, z)
+		if err != nil {
+			return err
+		}
+
+		err = enc.Encode(block)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *sqliteBlockRepository) Import(z *zip.Reader) error {
+	f, err := z.Open("blocks.json")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		dc := json.NewDecoder(bytes.NewReader(sc.Bytes()))
+		e := &Block{}
+		err = dc.Decode(e)
+		if err != nil {
+			return err
+		}
+
+		err = r.Update(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

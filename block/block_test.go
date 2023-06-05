@@ -1,6 +1,9 @@
 package block_test
 
 import (
+	"archive/zip"
+	"bytes"
+	"os"
 	"testing"
 
 	"github.com/minetest-go/mtdb/block"
@@ -38,6 +41,21 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 	assert.Equal(t, uint8(0x01), b.Data[1])
 	assert.Equal(t, uint8(0x02), b.Data[2])
 
+	// export
+	buf := bytes.NewBuffer([]byte{})
+	w := zip.NewWriter(buf)
+	err = block_repo.Export(w)
+	assert.NoError(t, err)
+	err = w.Close()
+	assert.NoError(t, err)
+	zipfile, err := os.CreateTemp(os.TempDir(), "blocks.zip")
+	assert.NoError(t, err)
+	f, err := os.Create(zipfile.Name())
+	assert.NoError(t, err)
+	count, err := f.Write(buf.Bytes())
+	assert.NoError(t, err)
+	assert.True(t, count > 0)
+
 	// delete
 	assert.NoError(t, block_repo.Delete(0, 0, 0))
 
@@ -48,4 +66,10 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 
 	// vacuum
 	assert.NoError(t, block_repo.Vacuum())
+
+	// import
+	z, err := zip.OpenReader(zipfile.Name())
+	assert.NoError(t, err)
+	err = block_repo.Import(&z.Reader)
+	assert.NoError(t, err)
 }

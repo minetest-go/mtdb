@@ -7,13 +7,14 @@ import (
 )
 
 type Block struct {
-	PosX int
-	PosY int
-	PosZ int
-	Data []byte
+	PosX int    `json:"x"`
+	PosY int    `json:"y"`
+	PosZ int    `json:"z"`
+	Data []byte `json:"data"`
 }
 
 type BlockRepository interface {
+	types.Backup
 	GetByPos(x, y, z int) (*Block, error)
 	Update(block *Block) error
 	Delete(x, y, z int) error
