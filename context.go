@@ -186,7 +186,7 @@ func New(world_dir string) (*Context, error) {
 	if ctx.player_db != nil {
 		ctx.Player = player.NewPlayerRepository(ctx.player_db, dbtype)
 		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(ctx.player_db, dbtype)
-		ctx.backuprepos = append(ctx.backuprepos, ctx.Player)
+		ctx.backuprepos = append(ctx.backuprepos, ctx.Player, ctx.PlayerMetadata)
 	}
 
 	return ctx, nil
