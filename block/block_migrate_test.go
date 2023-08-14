@@ -13,7 +13,7 @@ import (
 
 func TestMigrateBlockSQlite(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_SQLITE))

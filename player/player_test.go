@@ -48,7 +48,7 @@ func testRepository(t *testing.T, repo *player.PlayerRepository) {
 
 func TestSQliteMigratePlayer(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
@@ -62,7 +62,7 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	copyFileContents("testdata/players.sqlite", dbfile.Name())
 
 	// open db
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
 	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
@@ -112,7 +112,7 @@ func TestSqlitePlayerRepo(t *testing.T) {
 
 func TestSQlitePlayerRepo2(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))

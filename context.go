@@ -78,7 +78,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	default:
 		// default to sqlite
 		datasource = sqliteConn
-		dbtype = "sqlite"
+		dbtype = "sqlite3"
 	}
 
 	if t == types.DATABASE_POSTGRES && datasource == "" {

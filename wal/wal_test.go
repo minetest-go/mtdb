@@ -17,7 +17,7 @@ func TestCheckJournalModeDelete(t *testing.T) {
 	assert.NotNil(t, dbfile)
 	copyFileContents("testdata/auth.sqlite", dbfile.Name())
 
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name()+"?mode=ro")
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
 	assert.Error(t, wal.EnableWAL(db))
 }
@@ -28,7 +28,7 @@ func TestCheckJournalModeWal(t *testing.T) {
 	assert.NotNil(t, dbfile)
 	copyFileContents("testdata/auth.wal.sqlite", dbfile.Name())
 
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name()+"?mode=ro")
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
 	assert.NoError(t, wal.EnableWAL(db))
 }

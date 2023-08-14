@@ -18,7 +18,7 @@ func TestSqliteBlockRepo(t *testing.T) {
 	dbfile, err := os.CreateTemp(os.TempDir(), "map.sqlite")
 	assert.NoError(t, err)
 	assert.NotNil(t, dbfile)
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, wal.EnableWAL(db))
 
