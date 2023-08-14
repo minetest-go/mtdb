@@ -3,6 +3,7 @@ package mtdb
 import (
 	"archive/zip"
 	"database/sql"
+	"fmt"
 	"path"
 
 	_ "github.com/lib/pq"
@@ -77,7 +78,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 		dbtype = "postgres"
 	default:
 		// default to sqlite
-		datasource = sqliteConn
+		datasource = fmt.Sprintf("%s?_timeout=5000&_journal=WAL", sqliteConn)
 		dbtype = "sqlite3"
 	}
 
