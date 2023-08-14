@@ -4,14 +4,11 @@ before:
 builds:
   - main: ./cmd/mtdb
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     targets:
       - linux_amd64
-      - linux_arm_6
-      - windows_amd64
-      - darwin_arm64
     ldflags:
-      - -s -w
+      - -s -w -extldflags=-static
 changelog:
   sort: asc
   filters:

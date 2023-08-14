@@ -6,6 +6,7 @@ import (
 	"path"
 
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
@@ -14,7 +15,6 @@ import (
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
-	_ "modernc.org/sqlite"
 )
 
 type Context struct {
@@ -78,7 +78,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	default:
 		// default to sqlite
 		datasource = sqliteConn
-		dbtype = "sqlite"
+		dbtype = "sqlite3"
 	}
 
 	if t == types.DATABASE_POSTGRES && datasource == "" {

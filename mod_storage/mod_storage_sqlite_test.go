@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/types"
@@ -22,7 +22,7 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	copyFileContents("testdata/mod_storage.sqlite", dbfile.Name())
 
 	// open db
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	repo := mod_storage.NewModStorageRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
