@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/types"

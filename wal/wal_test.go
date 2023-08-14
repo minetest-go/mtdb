@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/stretchr/testify/assert"

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
