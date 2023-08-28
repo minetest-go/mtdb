@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/minetest-go/mtdb"
+	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/worldconfig"
 )
 
@@ -20,6 +21,7 @@ var (
 
 var help = flag.Bool("help", false, "shows the help")
 var show_version = flag.Bool("version", false, "shows the version")
+var show_stats = flag.Bool("stats", false, "show database statistics")
 var migrate = flag.Bool("migrate", false, "just migrates the database schemas and exit")
 var export = flag.String("export", "", "exports the database to the given zip file")
 var import_file = flag.String("import", "", "imports the database from a given zip file")
@@ -63,6 +65,27 @@ func main() {
 		// already migrated at this point
 		fmt.Println("Databases migrated / initialized")
 		return
+	}
+
+	if *show_stats {
+		block_count, err := ctx.Blocks.Count()
+		if err != nil {
+			panic(err)
+		}
+		auth_count, err := ctx.Auth.Count(&auth.AuthSearch{})
+		if err != nil {
+			panic(err)
+		}
+		player_count, err := ctx.Player.Count()
+		if err != nil {
+			panic(err)
+		}
+		modstorage_count, err := ctx.ModStorage.Count()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Blocks: %d, Auth-entries: %d, Player-entries: %d, Modstorage-entries: %d\n", block_count, auth_count, player_count, modstorage_count)
 	}
 
 	if *export != "" {
