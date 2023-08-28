@@ -86,6 +86,13 @@ func (repo *sqliteBlockRepository) Vacuum() error {
 	return err
 }
 
+func (repo *sqliteBlockRepository) Count() (int64, error) {
+	row := repo.db.QueryRow("select count(*) from blocks")
+	count := int64(0)
+	err := row.Scan(&count)
+	return count, err
+}
+
 func (r *sqliteBlockRepository) Export(z *zip.Writer) error {
 	w, err := z.Create("blocks.json")
 	if err != nil {

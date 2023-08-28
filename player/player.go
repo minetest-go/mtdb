@@ -112,6 +112,13 @@ func (r *PlayerRepository) RemovePlayer(name string) error {
 	return err
 }
 
+func (r *PlayerRepository) Count() (int64, error) {
+	row := r.db.QueryRow("select count(*) from player")
+	count := int64(0)
+	err := row.Scan(&count)
+	return count, err
+}
+
 func (r *PlayerRepository) Export(z *zip.Writer) error {
 	w, err := z.Create("player.json")
 	if err != nil {

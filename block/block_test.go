@@ -29,6 +29,11 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 	}
 	assert.NoError(t, block_repo.Update(b))
 
+	// count
+	blocks, err := block_repo.Count()
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), blocks)
+
 	// get
 	b, err = block_repo.GetByPos(0, 0, 0)
 	assert.NoError(t, err)

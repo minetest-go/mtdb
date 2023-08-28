@@ -41,6 +41,11 @@ func TestModStorageSQliteRepo(t *testing.T) {
 	}
 	assert.NoError(t, repo.Create(entry))
 
+	// count
+	entry_count, err := repo.Count()
+	assert.NoError(t, err)
+	assert.Equal(t, int64(3), entry_count)
+
 	// export
 	buf := bytes.NewBuffer([]byte{})
 	w := zip.NewWriter(buf)

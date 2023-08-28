@@ -19,6 +19,7 @@ type BlockRepository interface {
 	Update(block *Block) error
 	Delete(x, y, z int) error
 	Vacuum() error
+	Count() (int64, error)
 }
 
 func NewBlockRepository(db *sql.DB, dbtype types.DatabaseType) BlockRepository {

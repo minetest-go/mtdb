@@ -68,6 +68,11 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
 
+	// count
+	player_count, err := repo.Count()
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), player_count)
+
 	// existing entry
 	p, err := repo.GetPlayer("singleplayer")
 	assert.NoError(t, err)

@@ -37,6 +37,13 @@ func (repo *modStorageSqliteRepository) Delete(modname string, key []byte) error
 	return err
 }
 
+func (repo *modStorageSqliteRepository) Count() (int64, error) {
+	row := repo.db.QueryRow("select count(*) from entries")
+	count := int64(0)
+	err := row.Scan(&count)
+	return count, err
+}
+
 func (repo *modStorageSqliteRepository) Export(z *zip.Writer) error {
 	w, err := z.Create("mod_storage.json")
 	if err != nil {
