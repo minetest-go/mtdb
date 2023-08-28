@@ -37,6 +37,11 @@ func (repo *postgresBlockRepository) Delete(x, y, z int) error {
 	return err
 }
 
+func (repo *postgresBlockRepository) DeleteAll() error {
+	_, err := repo.db.Exec("delete from blocks")
+	return err
+}
+
 func (repo *postgresBlockRepository) Vacuum() error {
 	_, err := repo.db.Exec("vacuum")
 	return err

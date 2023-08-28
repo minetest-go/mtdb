@@ -19,6 +19,7 @@ type ModStorageRepository interface {
 	Create(entry *ModStorageEntry) error
 	Update(entry *ModStorageEntry) error
 	Delete(modname string, key []byte) error
+	DeleteAll() error
 	Count() (int64, error)
 	Export(z *zip.Writer) error
 	Import(z *zip.Reader) error

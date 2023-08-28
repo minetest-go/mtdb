@@ -108,6 +108,9 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, count > 0)
 
+	// delete all
+	assert.NoError(t, repo.DeleteAll())
+
 	// import
 	z, err := zip.OpenReader(zipfile.Name())
 	assert.NoError(t, err)

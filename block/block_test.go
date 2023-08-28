@@ -64,6 +64,9 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 	// delete
 	assert.NoError(t, block_repo.Delete(0, 0, 0))
 
+	// delete all
+	assert.NoError(t, block_repo.DeleteAll())
+
 	// get nil
 	b, err = block_repo.GetByPos(0, 0, 0)
 	assert.NoError(t, err)

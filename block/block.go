@@ -18,6 +18,7 @@ type BlockRepository interface {
 	GetByPos(x, y, z int) (*Block, error)
 	Update(block *Block) error
 	Delete(x, y, z int) error
+	DeleteAll() error
 	Vacuum() error
 	Count() (int64, error)
 }

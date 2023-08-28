@@ -37,6 +37,11 @@ func (repo *modStorageSqliteRepository) Delete(modname string, key []byte) error
 	return err
 }
 
+func (repo *modStorageSqliteRepository) DeleteAll() error {
+	_, err := repo.db.Exec("delete from entries")
+	return err
+}
+
 func (repo *modStorageSqliteRepository) Count() (int64, error) {
 	row := repo.db.QueryRow("select count(*) from entries")
 	count := int64(0)

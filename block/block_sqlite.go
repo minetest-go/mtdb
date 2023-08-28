@@ -81,6 +81,11 @@ func (repo *sqliteBlockRepository) Delete(x, y, z int) error {
 	return err
 }
 
+func (repo *sqliteBlockRepository) DeleteAll() error {
+	_, err := repo.db.Exec("delete from blocks")
+	return err
+}
+
 func (repo *sqliteBlockRepository) Vacuum() error {
 	_, err := repo.db.Exec("vacuum")
 	return err

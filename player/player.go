@@ -112,6 +112,11 @@ func (r *PlayerRepository) RemovePlayer(name string) error {
 	return err
 }
 
+func (r *PlayerRepository) DeleteAll() error {
+	_, err := r.db.Exec("delete from player")
+	return err
+}
+
 func (r *PlayerRepository) Count() (int64, error) {
 	row := r.db.QueryRow("select count(*) from player")
 	count := int64(0)
