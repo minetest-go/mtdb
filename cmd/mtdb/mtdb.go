@@ -10,6 +10,7 @@ import (
 
 	"github.com/minetest-go/mtdb"
 	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/util"
 	"github.com/minetest-go/mtdb/worldconfig"
 )
 
@@ -22,6 +23,7 @@ var (
 var help = flag.Bool("help", false, "shows the help")
 var show_version = flag.Bool("version", false, "shows the version")
 var show_stats = flag.Bool("stats", false, "show database statistics")
+var auth_cleanup = flag.Bool("authcleanup", false, "remove orphaned auth entries")
 var migrate = flag.Bool("migrate", false, "just migrates the database schemas and exit")
 var export = flag.String("export", "", "exports the database to the given zip file")
 var import_file = flag.String("import", "", "imports the database from a given zip file")
@@ -64,7 +66,15 @@ func main() {
 	if *migrate {
 		// already migrated at this point
 		fmt.Println("Databases migrated / initialized")
-		return
+	}
+
+	if *auth_cleanup {
+		removed_entries, err := util.AuthCleanup(ctx.Auth, ctx.Player)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Removed %d auth entries\n", removed_entries)
 	}
 
 	if *show_stats {
