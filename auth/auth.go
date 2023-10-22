@@ -46,14 +46,14 @@ const (
 	Descending OrderDirectionType = "desc"
 )
 
-var orderColumns = map[string]bool{
-	string(LastLogin): true,
-	string(Name):      true,
+var orderColumns = map[OrderColumnType]bool{
+	LastLogin: true,
+	Name:      true,
 }
 
-var orderDirections = map[string]bool{
-	string(Ascending):  true,
-	string(Descending): true,
+var orderDirections = map[OrderDirectionType]bool{
+	Ascending:  true,
+	Descending: true,
 }
 
 type AuthSearch struct {
@@ -81,9 +81,9 @@ func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (stri
 		i++
 	}
 
-	if s.OrderColumn != nil && orderColumns[string(*s.OrderColumn)] {
+	if s.OrderColumn != nil && orderColumns[*s.OrderColumn] {
 		order := Ascending
-		if s.OrderDirection != nil && orderDirections[string(*s.OrderDirection)] {
+		if s.OrderDirection != nil && orderDirections[*s.OrderDirection] {
 			order = *s.OrderDirection
 		}
 
