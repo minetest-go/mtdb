@@ -40,7 +40,7 @@ jobs:
 
     - name: Test
       run: |
-        go test ./... -coverprofile=profile.cov
+        go test -p 1 ./... -coverprofile=profile.cov
 
     - uses: shogo82148/actions-goveralls@v1.8.0
       with:
