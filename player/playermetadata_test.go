@@ -50,6 +50,7 @@ func testPlayerMetadata(t *testing.T, repo *player.PlayerMetadataRepository, pre
 
 func TestPlayerMetadataSQlite(t *testing.T) {
 	dbfile, err := os.CreateTemp(os.TempDir(), "playermetadata.sqlite")
+	assert.NoError(t, err)
 	db, err := sql.Open("sqlite3", dbfile.Name())
 	assert.NoError(t, err)
 

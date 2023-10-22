@@ -69,9 +69,9 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	assert.NotNil(t, repo)
 
 	// count
-	player_count, err := repo.Count()
+	player_count, err := repo.Count(&player.PlayerSearch{})
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), player_count)
+	assert.Equal(t, 1, player_count)
 
 	// existing entry
 	p, err := repo.GetPlayer("singleplayer")
