@@ -1,0 +1,17 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: ./cmd/mtdb
+    env:
+      - CGO_ENABLED=1
+    targets:
+      - linux_amd64
+    ldflags:
+      - -s -w -extldflags=-static
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

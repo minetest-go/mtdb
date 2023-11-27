@@ -9,8 +9,36 @@ type Player struct {
 	PosZ             float64 `json:"posz"`
 	HP               int     `json:"hp"`
 	Breath           int     `json:"breath"`
-	CreationDate     int64   `json:"creation_date"`
-	ModificationDate int64   `json:"modification_date"`
+	CreationDate     int64   `json:"creation_date"`     // unix seconds
+	ModificationDate int64   `json:"modification_date"` // unix seconds
+}
+
+type OrderColumnType string
+type OrderDirectionType string
+
+const (
+	ModificationDate OrderColumnType    = "modification_date"
+	Name             OrderColumnType    = "name"
+	Ascending        OrderDirectionType = "asc"
+	Descending       OrderDirectionType = "desc"
+)
+
+var orderColumns = map[OrderColumnType]bool{
+	ModificationDate: true,
+	Name:             true,
+}
+
+var orderDirections = map[OrderDirectionType]bool{
+	Ascending:  true,
+	Descending: true,
+}
+
+type PlayerSearch struct {
+	Namelike       *string             `json:"namelike"`
+	Name           *string             `json:"name"`
+	Limit          *int                `json:"limit"`
+	OrderColumn    *OrderColumnType    `json:"order_column"`
+	OrderDirection *OrderDirectionType `json:"order_direction"`
 }
 
 type PlayerMetadata struct {

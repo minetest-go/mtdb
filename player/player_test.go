@@ -1,6 +1,8 @@
 package player_test
 
 import (
+	"archive/zip"
+	"bytes"
 	"database/sql"
 	"fmt"
 	"math/rand"
@@ -8,7 +10,7 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/player"
 	"github.com/minetest-go/mtdb/types"
@@ -46,7 +48,7 @@ func testRepository(t *testing.T, repo *player.PlayerRepository) {
 
 func TestSQliteMigratePlayer(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
@@ -60,11 +62,16 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	copyFileContents("testdata/players.sqlite", dbfile.Name())
 
 	// open db
-	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
 	repo := player.NewPlayerRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
+
+	// count
+	player_count, err := repo.Count(&player.PlayerSearch{})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, player_count)
 
 	// existing entry
 	p, err := repo.GetPlayer("singleplayer")
@@ -85,11 +92,32 @@ func TestSqlitePlayerRepo(t *testing.T) {
 	p, err = repo.GetPlayer("dummy")
 	assert.NoError(t, err)
 	assert.Nil(t, p)
+
+	// export
+	buf := bytes.NewBuffer([]byte{})
+	w := zip.NewWriter(buf)
+	err = repo.Export(w)
+	assert.NoError(t, err)
+	err = w.Close()
+	assert.NoError(t, err)
+	zipfile, err := os.CreateTemp(os.TempDir(), "player.zip")
+	assert.NoError(t, err)
+	f, err := os.Create(zipfile.Name())
+	assert.NoError(t, err)
+	count, err := f.Write(buf.Bytes())
+	assert.NoError(t, err)
+	assert.True(t, count > 0)
+
+	// import
+	z, err := zip.OpenReader(zipfile.Name())
+	assert.NoError(t, err)
+	err = repo.Import(&z.Reader)
+	assert.NoError(t, err)
 }
 
 func TestSQlitePlayerRepo2(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))

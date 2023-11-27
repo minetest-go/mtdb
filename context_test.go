@@ -1,13 +1,15 @@
 package mtdb_test
 
 import (
+	"archive/zip"
+	"bytes"
 	"fmt"
 	"os"
 	"path"
 	"testing"
 
 	_ "github.com/lib/pq"
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb"
 	"github.com/stretchr/testify/assert"
@@ -59,6 +61,42 @@ mod_storage_backend = sqlite3
 	assert.NotNil(t, repos.ModStorage)
 
 	repoSmokeTests(t, repos)
+}
+
+func TestExportImportSqlite(t *testing.T) {
+	tmpdir := os.TempDir()
+	contents := `
+backend = sqlite3
+auth_backend = sqlite3
+player_backend = sqlite3
+mod_storage_backend = sqlite3
+	`
+	err := os.WriteFile(path.Join(tmpdir, "world.mt"), []byte(contents), 0644)
+	assert.NoError(t, err)
+
+	repos, err := mtdb.New(tmpdir)
+	assert.NoError(t, err)
+
+	// export
+	buf := bytes.NewBuffer([]byte{})
+	w := zip.NewWriter(buf)
+	err = repos.Export(w)
+	assert.NoError(t, err)
+	err = w.Close()
+	assert.NoError(t, err)
+	zipfile, err := os.CreateTemp(os.TempDir(), "dump.zip")
+	assert.NoError(t, err)
+	f, err := os.Create(zipfile.Name())
+	assert.NoError(t, err)
+	count, err := f.Write(buf.Bytes())
+	assert.NoError(t, err)
+	assert.True(t, count > 0)
+
+	// import
+	z, err := zip.OpenReader(zipfile.Name())
+	assert.NoError(t, err)
+	err = repos.Import(&z.Reader)
+	assert.NoError(t, err)
 }
 
 func TestNewSqliteWithDummyMap(t *testing.T) {

@@ -22,6 +22,13 @@ const (
 	CONFIG_MAP_BACKEND            = "backend"
 )
 
+const DEFAULT_CONFIG = `
+mod_storage_backend = sqlite3
+auth_backend = sqlite3
+player_backend = sqlite3
+backend = sqlite3
+`
+
 func Parse(filename string) (map[string]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {

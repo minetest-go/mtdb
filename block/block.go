@@ -8,14 +8,16 @@ import (
 )
 
 type Block struct {
-	PosX int
-	PosY int
-	PosZ int
-	Data []byte
+	PosX int    `json:"x"`
+	PosY int    `json:"y"`
+	PosZ int    `json:"z"`
+	Data []byte `json:"data"`
 }
 
 // BlockRepository implementes data access layer for the Minetest map data.
 type BlockRepository interface {
+	types.Backup
+
 	// GetByPost returns the map block at positions X,Y,Z.
 	GetByPos(x, y, z int) (*Block, error)
 
@@ -33,8 +35,10 @@ type BlockRepository interface {
 	Delete(x, y, z int) error
 
 	// Vacuum executes the storage layer vacuum command. Useful to reclaim
-	// storage space if not done automatically by the backend..
+	// storage space if not done automatically by the backend.
 	Vacuum() error
+
+	Count() (int64, error)
 }
 
 // NewBlockRepository initializes the connection with the appropriate database

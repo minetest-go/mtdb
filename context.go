@@ -1,10 +1,12 @@
 package mtdb
 
 import (
+	"archive/zip"
 	"database/sql"
 	"path"
 
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
@@ -13,7 +15,6 @@ import (
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
-	_ "modernc.org/sqlite"
 )
 
 type Context struct {
@@ -27,6 +28,7 @@ type Context struct {
 	player_db      *sql.DB
 	auth_db        *sql.DB
 	mod_storage_db *sql.DB
+	backuprepos    []types.Backup
 }
 
 // closes all database connections
@@ -35,6 +37,26 @@ func (ctx *Context) Close() {
 	ctx.player_db.Close()
 	ctx.auth_db.Close()
 	ctx.mod_storage_db.Close()
+}
+
+func (ctx *Context) Export(z *zip.Writer) error {
+	for _, r := range ctx.backuprepos {
+		err := r.Export(z)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (ctx *Context) Import(z *zip.Reader) error {
+	for _, r := range ctx.backuprepos {
+		err := r.Import(z)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn func(*sql.DB, types.DatabaseType) error) (*sql.DB, error) {
@@ -56,7 +78,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	default:
 		// default to sqlite
 		datasource = sqliteConn
-		dbtype = "sqlite"
+		dbtype = "sqlite3"
 	}
 
 	if t == types.DATABASE_POSTGRES && datasource == "" {
@@ -97,7 +119,9 @@ func New(world_dir string) (*Context, error) {
 		"world_dir": world_dir,
 		"world.mt":  wc,
 	}).Debug("Creating new DB context")
-	ctx := &Context{}
+	ctx := &Context{
+		backuprepos: make([]types.Backup, 0),
+	}
 
 	// map
 	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
@@ -112,6 +136,7 @@ func New(world_dir string) (*Context, error) {
 	}
 	if ctx.map_db != nil {
 		ctx.Blocks = block.NewBlockRepository(ctx.map_db, dbtype)
+		ctx.backuprepos = append(ctx.backuprepos, ctx.Blocks)
 	}
 
 	// auth/privs
@@ -128,6 +153,7 @@ func New(world_dir string) (*Context, error) {
 	if ctx.auth_db != nil {
 		ctx.Auth = auth.NewAuthRepository(ctx.auth_db, dbtype)
 		ctx.Privs = auth.NewPrivilegeRepository(ctx.auth_db, dbtype)
+		ctx.backuprepos = append(ctx.backuprepos, ctx.Auth, ctx.Privs)
 	}
 
 	// mod storage
@@ -143,6 +169,7 @@ func New(world_dir string) (*Context, error) {
 	}
 	if ctx.mod_storage_db != nil {
 		ctx.ModStorage = mod_storage.NewModStorageRepository(ctx.mod_storage_db, dbtype)
+		ctx.backuprepos = append(ctx.backuprepos, ctx.ModStorage)
 	}
 
 	// players
@@ -159,6 +186,7 @@ func New(world_dir string) (*Context, error) {
 	if ctx.player_db != nil {
 		ctx.Player = player.NewPlayerRepository(ctx.player_db, dbtype)
 		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(ctx.player_db, dbtype)
+		ctx.backuprepos = append(ctx.backuprepos, ctx.Player, ctx.PlayerMetadata)
 	}
 
 	return ctx, nil

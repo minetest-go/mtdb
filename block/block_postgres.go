@@ -1,7 +1,12 @@
 package block
 
 import (
+	"archive/zip"
+	"bufio"
+	"bytes"
 	"database/sql"
+
+	"encoding/json"
 
 	"github.com/sirupsen/logrus"
 )
@@ -79,4 +84,65 @@ func (repo *postgresBlockRepository) Delete(x, y, z int) error {
 func (repo *postgresBlockRepository) Vacuum() error {
 	_, err := repo.db.Exec("vacuum")
 	return err
+}
+
+func (repo *postgresBlockRepository) Count() (int64, error) {
+	row := repo.db.QueryRow("select count(*) from blocks")
+	count := int64(0)
+	err := row.Scan(&count)
+	return count, err
+}
+
+func (r *postgresBlockRepository) Export(z *zip.Writer) error {
+	w, err := z.Create("blocks.json")
+	if err != nil {
+		return err
+	}
+	enc := json.NewEncoder(w)
+
+	rows, err := r.db.Query("select posX,posY,posZ,data from blocks")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		block := &Block{}
+		err = rows.Scan(&block.PosX, &block.PosY, &block.PosZ, &block.Data)
+		if err != nil {
+			return err
+		}
+
+		err = enc.Encode(block)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *postgresBlockRepository) Import(z *zip.Reader) error {
+	f, err := z.Open("blocks.json")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		dc := json.NewDecoder(bytes.NewReader(sc.Bytes()))
+		e := &Block{}
+		err = dc.Decode(e)
+		if err != nil {
+			return err
+		}
+
+		err = r.Update(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
