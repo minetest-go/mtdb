@@ -37,6 +37,15 @@ func TestSqliteIterator(t *testing.T) {
 	testBlocksRepositoryIterator(t, blocks_repo)
 }
 
+func TestSqliteIteratorErrorHandling(t *testing.T) {
+	blocks_repo, db := setupSqlite(t)
+	defer db.Close()
+
+	testIteratorErrorHandling(t, blocks_repo, db, `
+		UPDATE blocks SET pos = 18446744073709551615;
+	`)
+}
+
 func TestCoordToPlain(t *testing.T) {
 	nodes := []struct {
 		x, y, z int

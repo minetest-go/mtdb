@@ -66,3 +66,12 @@ func TestPostgresIterator(t *testing.T) {
 	blocks_repo, _ := setupPostgress(t)
 	testBlocksRepositoryIterator(t, blocks_repo)
 }
+
+func TestPostgresIteratorErrorHandling(t *testing.T) {
+	blocks_repo, db := setupPostgress(t)
+	defer db.Close()
+
+	testIteratorErrorHandling(t, blocks_repo, db, `
+		ALTER TABLE blocks ALTER COLUMN posX TYPE float;
+		UPDATE blocks SET posX = 18446744073709551615;`)
+}

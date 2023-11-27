@@ -60,6 +60,7 @@ func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, error) 
 			b := &Block{}
 			if err = rows.Scan(&b.PosX, &b.PosY, &b.PosZ, &b.Data); err != nil {
 				l.Errorf("Failed to read next item from iterator: %v", err)
+				return
 			}
 			ch <- b
 		}

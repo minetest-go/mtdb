@@ -105,6 +105,7 @@ func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
 			b := &Block{}
 			if err = rows.Scan(&pos, &b.Data); err != nil {
 				l.Errorf("Failed to read next item from iterator: %v", err)
+				return
 			}
 			b.PosX, b.PosY, b.PosZ = PlainToCoord(pos)
 			ch <- b

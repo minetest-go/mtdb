@@ -3,6 +3,7 @@ package block_test
 import (
 	"archive/zip"
 	"bytes"
+	"database/sql"
 	"os"
 	"testing"
 	"time"
@@ -143,4 +144,39 @@ func testBlocksRepositoryIterator(t *testing.T, blocks_repo block.BlockRepositor
 	if assert.NoError(t, err) {
 		assert.Equal(t, 0, consumeAll(it))
 	}
+}
+
+func testIteratorErrorHandling(t *testing.T, blocks_repo block.BlockRepository, db *sql.DB, mockDataCorruption string) {
+	setUp := func() {
+		if err := blocks_repo.Update(&block.Block{1, 2, 3, []byte("default:stone")}); err != nil {
+			t.Fatalf("setUp: error loading test data: %v", err)
+		}
+
+		// Forcing an error during iterator loop
+		if _, err := db.Exec(mockDataCorruption); err != nil {
+			t.Fatalf("Error renaming column: %v", err)
+		}
+	}
+
+	tearDown := func() {
+		if _, err := db.Exec("DROP TABLE blocks"); err != nil {
+			t.Fatalf("tearDown: error resetting test db: %v", err)
+		}
+	}
+
+	setUp()
+	defer tearDown()
+
+	ch, err := blocks_repo.Iterator(0, 0, 0)
+	if err != nil {
+		t.Fatalf("Error loading the iterator: %v", err)
+	}
+
+	count := 0
+	for b := range ch {
+		t.Logf("Block: %v", b)
+		count++
+	}
+
+	assert.Equal(t, 0, count, "should not return any blocks when data is corrupted")
 }
