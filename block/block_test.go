@@ -81,8 +81,8 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 }
 
 func testBlocksRepositoryIterator(t *testing.T, blocks_repo block.BlockRepository) {
-	negX, negY, negZ := block.NodeToBlock(-32000, -32000, -32000)
-	posX, posY, posZ := block.NodeToBlock(32000, 32000, 32000)
+	negX, negY, negZ := block.AsBlockPos(-32000, -32000, -32000)
+	posX, posY, posZ := block.AsBlockPos(32000, 32000, 32000)
 
 	testData := []block.Block{
 		{negX, negY, negZ, []byte("negative")},

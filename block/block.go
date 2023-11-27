@@ -54,9 +54,9 @@ func NewBlockRepository(db *sql.DB, dbtype types.DatabaseType) BlockRepository {
 	}
 }
 
-// NodeToBlock converts the coordinates from the given Node into the equivalent
+// AsBlockPos converts the coordinates from the given Node into the equivalent
 // Block position. Each block contains 16x16x16 nodes.
-func NodeToBlock(x, y, z int) (int, int, int) {
+func AsBlockPos(x, y, z int) (int, int, int) {
 	pos := func(x int) int { return int(math.Floor(float64(x) / 16.0)) }
 	return pos(x), pos(y), pos(z)
 }

@@ -52,7 +52,7 @@ func TestCoordToPlain(t *testing.T) {
 	for i, tc := range nodes {
 		t.Logf("Test case: #%d", i)
 
-		x1, y1, z1 := block.NodeToBlock(tc.x, tc.y, tc.z)
+		x1, y1, z1 := block.AsBlockPos(tc.x, tc.y, tc.z)
 		pos := block.CoordToPlain(x1, y1, z1)
 		x2, y2, z2 := block.PlainToCoord(pos)
 
