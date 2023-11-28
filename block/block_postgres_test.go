@@ -75,3 +75,8 @@ func TestPostgresIteratorErrorHandling(t *testing.T) {
 		ALTER TABLE blocks ALTER COLUMN posX TYPE float;
 		UPDATE blocks SET posX = 18446744073709551615;`)
 }
+
+func TestPostgresIteratorCloser(t *testing.T) {
+	r, _ := setupPostgress(t)
+	testIteratorClose(t, r)
+}

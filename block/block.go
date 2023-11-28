@@ -2,6 +2,7 @@ package block
 
 import (
 	"database/sql"
+	"fmt"
 	"math"
 
 	"github.com/minetest-go/mtdb/types"
@@ -14,6 +15,17 @@ type Block struct {
 	Data []byte `json:"data"`
 }
 
+func (b *Block) String() string {
+	if b == nil {
+		return "nil"
+	}
+	v := b.Data
+	if len(b.Data) > 20 {
+		v = b.Data[:20]
+	}
+	return fmt.Sprintf("Block{X: %d, Y: %d, Z: %d, data: \"%v\"}", b.PosX, b.PosY, b.PosZ, string(v))
+}
+
 // BlockRepository implementes data access layer for the Minetest map data.
 type BlockRepository interface {
 	types.Backup
@@ -24,7 +36,7 @@ type BlockRepository interface {
 	// Iterator returns a channel to fetch all data from the starting position
 	// X,Y,Z, with the map blocks sorted by position ascending. Sorting is done
 	// by X,Y and Z coordinates.
-	Iterator(x, y, z int) (chan *Block, error)
+	Iterator(x, y, z int) (chan *Block, types.Closer, error)
 
 	// Update upserts the provided map block in the database, using the position
 	// as key.

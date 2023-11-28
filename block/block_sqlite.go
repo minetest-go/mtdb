@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/minetest-go/mtdb/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,7 +72,7 @@ func (repo *sqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	return entry, err
 }
 
-func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
+func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, types.Closer, error) {
 	pos := CoordToPlain(x, y, z)
 	rows, err := repo.db.Query(`
 		SELECT pos, data
@@ -80,13 +81,14 @@ func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
 		ORDER BY pos
 		`, pos)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	l := logrus.
 		WithField("iterating_from", []int{x, y, z}).
 		WithField("pos", pos)
 	ch := make(chan *Block)
+	done := make(types.WhenDone, 1)
 	count := int64(0)
 
 	// Spawn go routine to fetch rows and send to channel
@@ -95,26 +97,36 @@ func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
 		defer rows.Close()
 
 		l.Debug("Retrieving database rows")
-		for rows.Next() {
-			// Debug progress while fetching rows every 100's
-			count++
-			if count%100 == 0 {
-				l.Debugf("Retrieved %d records so far", count)
-			}
-			// Fetch and send to channel
-			b := &Block{}
-			if err = rows.Scan(&pos, &b.Data); err != nil {
-				l.Errorf("Failed to read next item from iterator: %v", err)
+		for {
+			select {
+			case <-done:
+				l.Debugf("Iterator closed by caller. Finishing up...")
 				return
+			default:
+				if rows.Next() {
+					// Debug progress while fetching rows every 100's
+					count++
+					if count%100 == 0 {
+						l.Debugf("Retrieved %d records so far", count)
+					}
+					// Fetch and send to channel
+					b := &Block{}
+					if err = rows.Scan(&pos, &b.Data); err != nil {
+						l.Errorf("Failed to read next item from iterator: %v", err)
+						return
+					}
+					b.PosX, b.PosY, b.PosZ = PlainToCoord(pos)
+					ch <- b
+				} else {
+					l.Debug("Iterator finished, closing up rows and channel")
+					return
+				}
 			}
-			b.PosX, b.PosY, b.PosZ = PlainToCoord(pos)
-			ch <- b
 		}
-		l.Debug("Iterator finished, closing up rows and channel")
 	}()
 
 	// Return channel to main component
-	return ch, nil
+	return ch, done, nil
 }
 
 func (repo *sqliteBlockRepository) Update(block *Block) error {

@@ -8,6 +8,7 @@ import (
 
 	"encoding/json"
 
+	"github.com/minetest-go/mtdb/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,7 +30,7 @@ func (repo *postgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	return entry, err
 }
 
-func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, error) {
+func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, types.Closer, error) {
 	rows, err := repo.db.Query(`
 		SELECT posX, posY, posZ, data
 		FROM blocks
@@ -37,11 +38,12 @@ func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, error) 
 		ORDER BY posX, posY, posZ
 		`, x, y, z)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	l := logrus.WithField("iterating_from", []int{x, y, z})
 	ch := make(chan *Block)
+	done := make(types.WhenDone, 1)
 	count := int64(0)
 
 	// Spawn go routine to fetch rows and send to channel
@@ -49,26 +51,37 @@ func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, error) 
 		defer close(ch)
 		defer rows.Close()
 
-		l.Debug("Retrieving database rows")
-		for rows.Next() {
-			// Debug progress while fetching rows every 100's
-			count++
-			if count%100 == 0 {
-				l.Debugf("Retrieved %d records so far", count)
-			}
-			// Fetch and send to channel
-			b := &Block{}
-			if err = rows.Scan(&b.PosX, &b.PosY, &b.PosZ, &b.Data); err != nil {
-				l.Errorf("Failed to read next item from iterator: %v", err)
+		l.Debug("Retrieving database rows ...")
+		for {
+			select {
+			case <-done:
+				// We can now return, we are done
+				l.Debugf("Iterator closed by caller. Finishing up...")
 				return
+			default:
+				if rows.Next() {
+					// Debug progress while fetching rows every 100's
+					count++
+					if count%100 == 0 {
+						l.Debugf("Retrieved %d records so far", count)
+					}
+					// Fetch and send to channel
+					b := &Block{}
+					if err = rows.Scan(&b.PosX, &b.PosY, &b.PosZ, &b.Data); err != nil {
+						l.Errorf("Failed to read next item from iterator: %v; aborting", err)
+						return
+					}
+					ch <- b
+				} else {
+					l.Debug("Iterator finished, closing up rows and channel")
+					return
+				}
 			}
-			ch <- b
 		}
-		l.Debug("Iterator finished, closing up rows and channel")
 	}()
 
 	// Return channel to main component
-	return ch, nil
+	return ch, done, nil
 }
 
 func (repo *postgresBlockRepository) Update(block *Block) error {

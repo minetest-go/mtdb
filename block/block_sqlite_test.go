@@ -72,3 +72,8 @@ func TestCoordToPlain(t *testing.T) {
 		}
 	}
 }
+
+func TestSqliteIteratorCloser(t *testing.T) {
+	r, _ := setupSqlite(t)
+	testIteratorClose(t, r)
+}
