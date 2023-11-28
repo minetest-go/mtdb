@@ -6,6 +6,9 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/minetest-go/mtdb/types"
+	"github.com/sirupsen/logrus"
 )
 
 type sqliteBlockRepository struct {
@@ -67,6 +70,63 @@ func (repo *sqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	err = rows.Scan(&pos, &entry.Data)
 	entry.PosX, entry.PosY, entry.PosZ = PlainToCoord(pos)
 	return entry, err
+}
+
+func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, types.Closer, error) {
+	pos := CoordToPlain(x, y, z)
+	rows, err := repo.db.Query(`
+		SELECT pos, data
+		FROM blocks
+		WHERE pos >= $1
+		ORDER BY pos
+		`, pos)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	l := logrus.
+		WithField("iterating_from", []int{x, y, z}).
+		WithField("pos", pos)
+	ch := make(chan *Block)
+	done := make(types.WhenDone, 1)
+	count := int64(0)
+
+	// Spawn go routine to fetch rows and send to channel
+	go func() {
+		defer close(ch)
+		defer rows.Close()
+
+		l.Debug("Retrieving database rows")
+		for {
+			select {
+			case <-done:
+				l.Debugf("Iterator closed by caller. Finishing up...")
+				return
+			default:
+				if rows.Next() {
+					// Debug progress while fetching rows every 100's
+					count++
+					if count%100 == 0 {
+						l.Debugf("Retrieved %d records so far", count)
+					}
+					// Fetch and send to channel
+					b := &Block{}
+					if err = rows.Scan(&pos, &b.Data); err != nil {
+						l.Errorf("Failed to read next item from iterator: %v", err)
+						return
+					}
+					b.PosX, b.PosY, b.PosZ = PlainToCoord(pos)
+					ch <- b
+				} else {
+					l.Debug("Iterator finished, closing up rows and channel")
+					return
+				}
+			}
+		}
+	}()
+
+	// Return channel to main component
+	return ch, done, nil
 }
 
 func (repo *sqliteBlockRepository) Update(block *Block) error {

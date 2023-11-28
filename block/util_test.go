@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 )
 
 func getPostgresDB(t *testing.T) (*sql.DB, error) {
@@ -23,4 +24,18 @@ func getPostgresDB(t *testing.T) (*sql.DB, error) {
 		os.Getenv("PGDATABASE"))
 
 	return sql.Open("postgres", connStr)
+}
+
+type testingLogWriter struct {
+	t *testing.T
+}
+
+func (l testingLogWriter) Write(b []byte) (n int, err error) {
+	l.t.Logf(string(b))
+	return len(b), nil
+}
+
+func logToTesting(t *testing.T) {
+	logrus.SetOutput(testingLogWriter{t})
+	logrus.SetLevel(logrus.DebugLevel)
 }

@@ -3,8 +3,10 @@ package block_test
 import (
 	"archive/zip"
 	"bytes"
+	"database/sql"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/minetest-go/mtdb/block"
 	"github.com/stretchr/testify/assert"
@@ -77,4 +79,140 @@ func testBlocksRepository(t *testing.T, block_repo block.BlockRepository) {
 	assert.NoError(t, err)
 	err = block_repo.Import(&z.Reader)
 	assert.NoError(t, err)
+}
+
+func testBlocksRepositoryIterator(t *testing.T, blocks_repo block.BlockRepository) {
+	negX, negY, negZ := block.AsBlockPos(-32000, -32000, -32000)
+	posX, posY, posZ := block.AsBlockPos(32000, 32000, 32000)
+
+	testData := []block.Block{
+		{negX, negY, negZ, []byte("negative")},
+		{0, 0, 0, []byte("zero")},
+		{posX, posY, posZ, []byte("positive")},
+	}
+	for i := range testData {
+		b := testData[i]
+		blocks_repo.Update(&b)
+	}
+	// logrus.SetLevel(logrus.DebugLevel)
+
+	// Helper function to loop over all channel data
+	// TODO(ronoaldo): simplify this so we don't have
+	// to work so verbose. Perhaps implement a wrapper
+	// to the channel?
+	consumeAll := func(it chan *block.Block) int {
+		t.Logf("consumeAll: fetching data from iterator")
+		count := 0
+		for {
+			select {
+			case b, ok := <-it:
+				if !ok {
+					return count
+				}
+				t.Logf("consumeAll: got %v", b)
+				count++
+			case <-time.After(3 * time.Second):
+				t.Errorf("consumeAll: timed out")
+				return count
+			}
+			if count > 10 {
+				panic("consumeAll: too many items returned from channel")
+			}
+		}
+	}
+
+	// Fetch from neg -> pos, retrieves all three blocks
+	it, _, err := blocks_repo.Iterator(negX, negY, negZ)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 3, consumeAll(it))
+	}
+
+	// Fetch from zero -> pos, retrieves two blocks
+	it, _, err = blocks_repo.Iterator(0, 0, 0)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 2, consumeAll(it))
+	}
+
+	// Fetch from zero +1 -> pos, retrieves only one
+	it, _, err = blocks_repo.Iterator(0, 0, 1)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 1, consumeAll(it))
+	}
+
+	// Fetch from 2000,2000,2000, retrieves zero blocks
+	it, _, err = blocks_repo.Iterator(posX+1, posY+1, posZ+1)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 0, consumeAll(it))
+	}
+}
+
+func testIteratorErrorHandling(t *testing.T, blocks_repo block.BlockRepository, db *sql.DB, mockDataCorruption string) {
+	logToTesting(t)
+	setUp := func() {
+		if err := blocks_repo.Update(&block.Block{1, 2, 3, []byte("default:stone")}); err != nil {
+			t.Fatalf("setUp: error loading test data: %v", err)
+		}
+
+		// Forcing an error during iterator loop
+		if _, err := db.Exec(mockDataCorruption); err != nil {
+			t.Fatalf("Error renaming column: %v", err)
+		}
+	}
+
+	tearDown := func() {
+		if _, err := db.Exec("DROP TABLE blocks"); err != nil {
+			t.Fatalf("tearDown: error resetting test db: %v", err)
+		}
+	}
+
+	setUp()
+	defer tearDown()
+
+	ch, _, err := blocks_repo.Iterator(0, 0, 0)
+	if err != nil {
+		t.Fatalf("Error loading the iterator: %v", err)
+	}
+
+	count := 0
+	for b := range ch {
+		t.Logf("Block: %v", b)
+		count++
+	}
+
+	assert.Equal(t, 0, count, "should not return any blocks when data is corrupted")
+}
+
+func testIteratorClose(t *testing.T, r block.BlockRepository) {
+	logToTesting(t)
+
+	// setUp: Generates 1000+ blocks
+	for x := -10; x <= 10; x += 2 {
+		for y := -10; y <= 10; y += 2 {
+			for z := -10; z <= 10; z += 2 {
+				r.Update(&block.Block{x, y, z, []byte("default:stone")})
+			}
+		}
+	}
+
+	it, cl, err := r.Iterator(0, 0, 0)
+	assert.NoError(t, err, "no error should be returned when initializing iterator")
+	assert.NotNil(t, cl, "closer should not be nil")
+
+	count := 0
+	for b := range it {
+		t.Logf("Block received: %v", b)
+		assert.NotNil(t, b, "should not return a nil block from iterator")
+		count++
+
+		if count >= 10 {
+			t.Logf("Closing the bridge at %d", count)
+			assert.NoError(t, cl.Close(), "closer should not have any errors")
+			break
+		}
+	}
+
+	totalCount, err := r.Count()
+	assert.NoError(t, err, "should not return error when counting")
+
+	t.Logf("Retrieved %d blocks from a total of %d", count, totalCount)
 }
