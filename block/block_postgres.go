@@ -160,3 +160,7 @@ func (r *postgresBlockRepository) Import(z *zip.Reader) error {
 
 	return nil
 }
+
+func (r *postgresBlockRepository) Close() error {
+	return r.db.Close()
+}
