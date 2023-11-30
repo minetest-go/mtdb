@@ -50,7 +50,11 @@ type BlockRepository interface {
 	// storage space if not done automatically by the backend.
 	Vacuum() error
 
+	// Count returns the total number of stored blocks in the map database.
 	Count() (int64, error)
+
+	// Close gracefully finishes the connection with the database backend.
+	Close() error
 }
 
 // NewBlockRepository initializes the connection with the appropriate database

@@ -24,12 +24,12 @@ func setupPostgress(t *testing.T) (block.BlockRepository, *sql.DB) {
 }
 
 func TestPostgresBlocksRepo(t *testing.T) {
-	blocks_repo, _ := setupPostgress(t)
-	testBlocksRepository(t, blocks_repo)
+	r, _ := setupPostgress(t)
+	testBlocksRepository(t, r)
 }
 
 func TestPostgresMaxConnections(t *testing.T) {
-	blocks_repo, db := setupPostgress(t)
+	r, db := setupPostgress(t)
 
 	var maxConnections int
 	row := db.QueryRow("show max_connections;")
@@ -43,14 +43,14 @@ func TestPostgresMaxConnections(t *testing.T) {
 		PosZ: 1,
 		Data: []byte("test"),
 	}
-	if err := blocks_repo.Update(&fakeBlock); err != nil {
+	if err := r.Update(&fakeBlock); err != nil {
 		t.Fatalf("Error setting up test case: %v", err)
 	}
 
 	// Run more than max_connections query operations in a loop
 	count := 0
 	for i := 0; i < maxConnections*2; i++ {
-		b, err := blocks_repo.GetByPos(1, 1, 1)
+		b, err := r.GetByPos(1, 1, 1)
 		count++
 		if b != nil && count%10 == 0 {
 			t.Logf("Executed %d operations. b=%v", count, b)

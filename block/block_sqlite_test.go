@@ -28,22 +28,29 @@ func setupSqlite(t *testing.T) (block.BlockRepository, *sql.DB) {
 
 func TestSqliteBlockRepo(t *testing.T) {
 	// open db
-	blocks_repo, _ := setupSqlite(t)
-	testBlocksRepository(t, blocks_repo)
+	r, _ := setupSqlite(t)
+	defer r.Close()
+	testBlocksRepository(t, r)
 }
 
 func TestSqliteIterator(t *testing.T) {
-	blocks_repo, _ := setupSqlite(t)
-	testBlocksRepositoryIterator(t, blocks_repo)
+	r, _ := setupSqlite(t)
+	defer r.Close()
+	testBlocksRepositoryIterator(t, r)
 }
 
 func TestSqliteIteratorErrorHandling(t *testing.T) {
-	blocks_repo, db := setupSqlite(t)
+	r, db := setupSqlite(t)
 	defer db.Close()
+	defer r.Close()
 
-	testIteratorErrorHandling(t, blocks_repo, db, `
-		UPDATE blocks SET pos = 18446744073709551615;
-	`)
+	testIteratorErrorHandling(t, r, db, `UPDATE blocks SET pos = 18446744073709551615;`)
+}
+
+func TestSqliteIteratorCloser(t *testing.T) {
+	r, _ := setupSqlite(t)
+	defer r.Close()
+	testIteratorClose(t, r)
 }
 
 func TestCoordToPlain(t *testing.T) {
@@ -71,9 +78,4 @@ func TestCoordToPlain(t *testing.T) {
 				"x=%v,y=%v=z=%v => x=%v, y=%v, z=%v", x1, y1, z1, x2, y2, z2)
 		}
 	}
-}
-
-func TestSqliteIteratorCloser(t *testing.T) {
-	r, _ := setupSqlite(t)
-	testIteratorClose(t, r)
 }

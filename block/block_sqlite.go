@@ -63,6 +63,7 @@ func (repo *sqliteBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	if !rows.Next() {
 		return nil, nil
 	}
@@ -211,4 +212,8 @@ func (r *sqliteBlockRepository) Import(z *zip.Reader) error {
 	}
 
 	return nil
+}
+
+func (r *sqliteBlockRepository) Close() error {
+	return r.db.Close()
 }
