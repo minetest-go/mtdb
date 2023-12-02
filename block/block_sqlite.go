@@ -78,7 +78,7 @@ func (repo *sqliteBlockRepository) Iterator(x, y, z int) (chan *Block, types.Clo
 	rows, err := repo.db.Query(`
 		SELECT pos, data
 		FROM blocks
-		WHERE pos >= $1
+		WHERE pos > $1
 		ORDER BY pos
 		`, pos)
 	if err != nil {

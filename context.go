@@ -3,10 +3,10 @@ package mtdb
 import (
 	"archive/zip"
 	"database/sql"
+	"fmt"
 	"path"
 
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
@@ -15,6 +15,7 @@ import (
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
+	_ "modernc.org/sqlite"
 )
 
 type Context struct {
@@ -78,7 +79,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 	default:
 		// default to sqlite
 		datasource = sqliteConn
-		dbtype = "sqlite3"
+		dbtype = "sqlite"
 	}
 
 	if t == types.DATABASE_POSTGRES && datasource == "" {
@@ -136,6 +137,9 @@ func New(world_dir string) (*Context, error) {
 	}
 	if ctx.map_db != nil {
 		ctx.Blocks = block.NewBlockRepository(ctx.map_db, dbtype)
+		if ctx.Blocks == nil {
+			return nil, fmt.Errorf("invalid repository dbtype: %v", dbtype)
+		}
 		ctx.backuprepos = append(ctx.backuprepos, ctx.Blocks)
 	}
 

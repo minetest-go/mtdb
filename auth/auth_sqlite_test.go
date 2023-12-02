@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/types"
@@ -15,7 +15,7 @@ import (
 
 func TestEmptySQliteRepo(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 	repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
@@ -33,7 +33,7 @@ func TestSQliteRepo(t *testing.T) {
 	copyFileContents("testdata/auth.wal.sqlite", dbfile.Name())
 
 	// open db
-	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
@@ -99,7 +99,7 @@ func TestSQlitePrivRepo(t *testing.T) {
 	copyFileContents("testdata/auth.wal.sqlite", dbfile.Name())
 
 	// open db
-	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)
 	assert.NotNil(t, repo)
@@ -155,7 +155,7 @@ func TestSqliteAuthRepo(t *testing.T) {
 	dbfile, err := os.CreateTemp(os.TempDir(), "auth.sqlite")
 	assert.NoError(t, err)
 	assert.NotNil(t, dbfile)
-	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_SQLITE))
 	assert.NoError(t, wal.EnableWAL(db))

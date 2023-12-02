@@ -63,6 +63,24 @@ func TestPostgresMaxConnections(t *testing.T) {
 }
 
 func TestPostgresIterator(t *testing.T) {
+	logToTesting(t)
+	blocks_repo, _ := setupPostgress(t)
+	testBlocksRepositoryIterator(t, blocks_repo)
+}
+
+func TestPostgresIteratorBatches(t *testing.T) {
+	logToTesting(t)
+
+	oldSize := block.IteratorBatchSize
+	setUp := func() {
+		block.IteratorBatchSize = 1
+	}
+	tearDown := func() {
+		block.IteratorBatchSize = oldSize
+	}
+
+	setUp()
+	defer tearDown()
 	blocks_repo, _ := setupPostgress(t)
 	testBlocksRepositoryIterator(t, blocks_repo)
 }
