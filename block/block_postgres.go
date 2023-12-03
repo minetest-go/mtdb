@@ -30,51 +30,85 @@ func (repo *postgresBlockRepository) GetByPos(x, y, z int) (*Block, error) {
 	return entry, err
 }
 
+// IteratorBatchSize is a default value to be used while batching over Iterators.
+var IteratorBatchSize = 4096
+
+// iteratorQuery uses the keyset pagination as described in this SO question
+// https://stackoverflow.com/q/57504274
+//
+// The WHERE (args) >= (params) works in a way to keep the sorting during comparision
+// without the need to implement this as an offset/cursor
+var iteratorQuery = `-- Query blocks to iterate over
+SELECT posX, posY, posZ, data
+FROM blocks
+WHERE (posZ, posY, posX) > ($3, $2, $1)
+ORDER BY posZ, posY, posX
+LIMIT $4`
+
 func (repo *postgresBlockRepository) Iterator(x, y, z int) (chan *Block, types.Closer, error) {
-	rows, err := repo.db.Query(`
-		SELECT posX, posY, posZ, data
-		FROM blocks
-		WHERE posX >= $1 AND posY >= $2 AND posZ >= $3
-		ORDER BY posX, posY, posZ
-		`, x, y, z)
+	// logging setup
+	l := logrus.WithField("iterating_from", []int{x, y, z})
+	count := int64(0)
+	page := 0
+	pageSize := 0
+
+	l.Debug("running database query")
+	rows, err := repo.db.Query(iteratorQuery, x, y, z, IteratorBatchSize)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	l := logrus.WithField("iterating_from", []int{x, y, z})
-	ch := make(chan *Block)
+	ch := make(chan *Block, IteratorBatchSize)
 	done := make(types.WhenDone, 1)
-	count := int64(0)
+	lastPos := Block{}
 
 	// Spawn go routine to fetch rows and send to channel
 	go func() {
 		defer close(ch)
 		defer rows.Close()
 
-		l.Debug("Retrieving database rows ...")
+		l.Debug("retrieving database rows ...")
 		for {
 			select {
 			case <-done:
 				// We can now return, we are done
-				l.Debugf("Iterator closed by caller. Finishing up...")
+				l.Debugf("iterator closed by caller; finishing up...")
 				return
 			default:
 				if rows.Next() {
 					// Debug progress while fetching rows every 100's
 					count++
+					pageSize++
 					if count%100 == 0 {
-						l.Debugf("Retrieved %d records so far", count)
+						l.Debugf("retrieved %d records so far", count)
 					}
 					// Fetch and send to channel
 					b := &Block{}
 					if err = rows.Scan(&b.PosX, &b.PosY, &b.PosZ, &b.Data); err != nil {
-						l.Errorf("Failed to read next item from iterator: %v; aborting", err)
+						l.Errorf("failed to read next item from iterator: %v; aborting", err)
 						return
 					}
+					lastPos.PosX, lastPos.PosY, lastPos.PosZ = b.PosX, b.PosY, b.PosZ
 					ch <- b
 				} else {
-					l.Debug("Iterator finished, closing up rows and channel")
-					return
+					f := logrus.Fields{"last_pos": lastPos, "last_page_size": pageSize, "page": page}
+					if pageSize > 0 {
+						page++
+						// If the previous batch is > 0, restart the query from last position
+						if err := rows.Close(); err != nil {
+							l.WithField("err", err).Warning("error closing previous batch")
+						}
+						rows, err = repo.db.Query(iteratorQuery, lastPos.PosX, lastPos.PosY, lastPos.PosZ, IteratorBatchSize)
+						if err != nil {
+							l.WithField("err", err).Warning("error restarting query")
+							return
+						}
+						pageSize = 0
+						l.WithFields(f).Debug("batch finished, restarting next batch")
+					} else {
+						l.WithFields(f).Debug("iterator finished, closing up rows and channel")
+						return
+					}
 				}
 			}
 		}

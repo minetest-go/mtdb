@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/types"
@@ -17,7 +17,7 @@ func setupSqlite(t *testing.T) (block.BlockRepository, *sql.DB) {
 	dbfile, err := os.CreateTemp(os.TempDir(), "map.sqlite")
 	assert.NoError(t, err)
 	assert.NotNil(t, dbfile)
-	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
+	db, err := sql.Open("sqlite", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, wal.EnableWAL(db))
 

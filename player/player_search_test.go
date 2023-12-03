@@ -104,7 +104,7 @@ func testPlayerSearch(t *testing.T, repo *player.PlayerRepository) {
 
 func TestPlayerSearchSQLite(t *testing.T) {
 	// open db
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql.Open("sqlite", ":memory:")
 	assert.NoError(t, err)
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_SQLITE))
@@ -117,6 +117,7 @@ func TestPlayerSearchPostgres(t *testing.T) {
 	db, err := getPostgresDB(t)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
+	db.Exec("delete from player")
 
 	assert.NoError(t, player.MigratePlayerDB(db, types.DATABASE_POSTGRES))
 	repo := player.NewPlayerRepository(db, types.DATABASE_POSTGRES)

@@ -27,6 +27,8 @@ func (b *Block) String() string {
 }
 
 // BlockRepository implementes data access layer for the Minetest map data.
+// All positions are in mapblock coordinates, as described here:
+// https://github.com/minetest/minetest/blob/master/doc/lua_api.md#mapblock-coordinates
 type BlockRepository interface {
 	types.Backup
 
@@ -34,8 +36,8 @@ type BlockRepository interface {
 	GetByPos(x, y, z int) (*Block, error)
 
 	// Iterator returns a channel to fetch all data from the starting position
-	// X,Y,Z, with the map blocks sorted by position ascending. Sorting is done
-	// by X,Y and Z coordinates.
+	// X,Y,Z (exclusive), with the map blocks sorted by position ascending.
+	// Sorting is done by Z, Y, X to keep consistency with Sqlite map format.
 	Iterator(x, y, z int) (chan *Block, types.Closer, error)
 
 	// Update upserts the provided map block in the database, using the position
