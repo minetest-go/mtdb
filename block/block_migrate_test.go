@@ -20,8 +20,7 @@ func TestMigrateBlockSQlite(t *testing.T) {
 }
 
 func TestMigrateBlockPostgres(t *testing.T) {
-	db, err := getPostgresDB(t)
-	assert.NoError(t, err)
+	db := getPostgresDB(t)
 
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_POSTGRES))
 }

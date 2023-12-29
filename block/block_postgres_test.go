@@ -10,8 +10,7 @@ import (
 )
 
 func setupPostgress(t *testing.T) (block.BlockRepository, *sql.DB) {
-	db, err := getPostgresDB(t)
-	assert.NoError(t, err)
+	db := getPostgresDB(t)
 
 	// Cleanup any previous data
 	db.Exec("delete from blocks")

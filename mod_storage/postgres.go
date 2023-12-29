@@ -13,7 +13,7 @@ type modStoragePostgresRepository struct {
 }
 
 func (repo *modStoragePostgresRepository) Get(modname string, key []byte) (*ModStorageEntry, error) {
-	row := repo.db.QueryRow("select modname,key,value from entries where modname = $1 and key = $2", modname, key)
+	row := repo.db.QueryRow("select modname,key,value from mod_storage where modname = $1 and key = $2", modname, key)
 	entry := &ModStorageEntry{}
 	err := row.Scan(&entry.ModName, &entry.Key, &entry.Value)
 	if err == sql.ErrNoRows {
@@ -23,22 +23,22 @@ func (repo *modStoragePostgresRepository) Get(modname string, key []byte) (*ModS
 }
 
 func (repo *modStoragePostgresRepository) Create(entry *ModStorageEntry) error {
-	_, err := repo.db.Exec("insert into entries(modname,key,value) values($1,$2,$3)", entry.ModName, entry.Key, entry.Value)
+	_, err := repo.db.Exec("insert into mod_storage(modname,key,value) values($1,$2,$3)", entry.ModName, entry.Key, entry.Value)
 	return err
 }
 
 func (repo *modStoragePostgresRepository) Update(entry *ModStorageEntry) error {
-	_, err := repo.db.Exec("update entries set value = $1 where modname = $2 and key = $3", entry.Value, entry.ModName, entry.Key)
+	_, err := repo.db.Exec("update mod_storage set value = $1 where modname = $2 and key = $3", entry.Value, entry.ModName, entry.Key)
 	return err
 }
 
 func (repo *modStoragePostgresRepository) Delete(modname string, key []byte) error {
-	_, err := repo.db.Exec("delete from entries where modname = $1 and key = $2", modname, key)
+	_, err := repo.db.Exec("delete from mod_storage where modname = $1 and key = $2", modname, key)
 	return err
 }
 
 func (repo *modStoragePostgresRepository) Count() (int64, error) {
-	row := repo.db.QueryRow("select count(*) from entries")
+	row := repo.db.QueryRow("select count(*) from mod_storage")
 	count := int64(0)
 	err := row.Scan(&count)
 	return count, err
@@ -51,7 +51,7 @@ func (repo *modStoragePostgresRepository) Export(z *zip.Writer) error {
 	}
 	enc := json.NewEncoder(w)
 
-	rows, err := repo.db.Query("select modname,key,value from entries")
+	rows, err := repo.db.Query("select modname,key,value from mod_storage")
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (repo *modStoragePostgresRepository) Import(z *zip.Reader) error {
 			return err
 		}
 
-		_, err := repo.db.Exec("insert into entries(modname,key,value) values($1,$2,$3) on conflict set value = $3", e.ModName, e.Key, e.Value)
+		_, err := repo.db.Exec("insert into mod_storage(modname,key,value) values($1,$2,$3) on conflict set value = $3", e.ModName, e.Key, e.Value)
 		if err != nil {
 			return err
 		}

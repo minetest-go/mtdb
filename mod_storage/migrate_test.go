@@ -18,3 +18,8 @@ func TestMigrateModStorageSQlite(t *testing.T) {
 
 	assert.NoError(t, mod_storage.MigrateModStorageDB(db, types.DATABASE_SQLITE))
 }
+
+func TestMigrateModStoragePostgres(t *testing.T) {
+	db := getPostgresDB(t)
+	assert.NoError(t, mod_storage.MigrateModStorageDB(db, types.DATABASE_POSTGRES))
+}

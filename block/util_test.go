@@ -8,9 +8,10 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
-func getPostgresDB(t *testing.T) (*sql.DB, error) {
+func getPostgresDB(t *testing.T) *sql.DB {
 	if os.Getenv("PGHOST") == "" {
 		t.SkipNow()
 	}
@@ -23,7 +24,9 @@ func getPostgresDB(t *testing.T) (*sql.DB, error) {
 		os.Getenv("PGHOST"),
 		os.Getenv("PGDATABASE"))
 
-	return sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", connStr)
+	assert.NoError(t, err)
+	return db
 }
 
 type testingLogWriter struct {

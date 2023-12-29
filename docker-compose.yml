@@ -8,25 +8,28 @@ services:
    POSTGRES_PASSWORD: enter
   volumes:
    - "postgres:/var/lib/postgresql/data"
-  command: -c port=9432
 
  integration-test:
   image: golang:1.21.4
   depends_on:
    - postgres
   volumes:
+   - "go_dir:/go"
+   - "go_cache:/.cache"
    - ".:/data"
   environment:
    - PGUSER=postgres
    - PGPASSWORD=enter
    - PGHOST=postgres
+   - PGPORT=5432
    - PGDATABASE=postgres
-   - PGPORT=9432
    - LOGLEVEL=debug
    - CGO_ENABLED=0
    - GO_FLAGS=-count=1
   working_dir: /data
-  command: ["go", "test", "./...", "-v", "-cover"]
+  command: ["go", "test", "./...", "-cover"]
 
 volumes:
   postgres: {}
+  go_cache: {}
+  go_dir: {}
