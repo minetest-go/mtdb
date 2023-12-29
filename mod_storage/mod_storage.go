@@ -28,6 +28,8 @@ func NewModStorageRepository(db *sql.DB, dbtype types.DatabaseType) ModStorageRe
 	switch dbtype {
 	case types.DATABASE_SQLITE:
 		return &modStorageSqliteRepository{db: db}
+	case types.DATABASE_POSTGRES:
+		return &modStoragePostgresRepository{db: db}
 	default:
 		return nil
 	}

@@ -165,7 +165,7 @@ func New(world_dir string) (*Context, error) {
 	ctx.mod_storage_db, err = connectAndMigrate(
 		dbtype,
 		path.Join(world_dir, "mod_storage.sqlite"),
-		"not implemented",
+		wc[worldconfig.CONFIG_PSQL_MOD_STORAGE_CONNECTION],
 		mod_storage.MigrateModStorageDB,
 	)
 	if err != nil {

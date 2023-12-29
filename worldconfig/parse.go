@@ -13,13 +13,14 @@ const (
 )
 
 const (
-	CONFIG_PSQL_AUTH_CONNECTION   = "pgsql_auth_connection"
-	CONFIG_AUTH_BACKEND           = "auth_backend"
-	CONFIG_STORAGE_BACKEND        = "mod_storage_backend"
-	CONFIG_PLAYER_BACKEND         = "player_backend"
-	CONFIG_PSQL_PLAYER_CONNECTION = "pgsql_player_connection"
-	CONFIG_PSQL_MAP_CONNECTION    = "pgsql_connection"
-	CONFIG_MAP_BACKEND            = "backend"
+	CONFIG_MAP_BACKEND                 = "backend"
+	CONFIG_AUTH_BACKEND                = "auth_backend"
+	CONFIG_STORAGE_BACKEND             = "mod_storage_backend"
+	CONFIG_PLAYER_BACKEND              = "player_backend"
+	CONFIG_PSQL_PLAYER_CONNECTION      = "pgsql_player_connection"
+	CONFIG_PSQL_MAP_CONNECTION         = "pgsql_connection"
+	CONFIG_PSQL_AUTH_CONNECTION        = "pgsql_auth_connection"
+	CONFIG_PSQL_MOD_STORAGE_CONNECTION = "pgsql_mod_storage_connection"
 )
 
 const DEFAULT_CONFIG = `
