@@ -18,6 +18,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// Database connection context
 type Context struct {
 	Auth           *auth.AuthRepository
 	Privs          *auth.PrivRepository
@@ -25,19 +26,15 @@ type Context struct {
 	PlayerMetadata *player.PlayerMetadataRepository
 	Blocks         block.BlockRepository
 	ModStorage     mod_storage.ModStorageRepository
-	map_db         *sql.DB
-	player_db      *sql.DB
-	auth_db        *sql.DB
-	mod_storage_db *sql.DB
+	open_databases []*sql.DB
 	backuprepos    []types.Backup
 }
 
 // closes all database connections
 func (ctx *Context) Close() {
-	ctx.map_db.Close()
-	ctx.player_db.Close()
-	ctx.auth_db.Close()
-	ctx.mod_storage_db.Close()
+	for _, db := range ctx.open_databases {
+		db.Close()
+	}
 }
 
 func (ctx *Context) Export(z *zip.Writer) error {
@@ -60,29 +57,37 @@ func (ctx *Context) Import(z *zip.Reader) error {
 	return nil
 }
 
-func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn func(*sql.DB, types.DatabaseType) error) (*sql.DB, error) {
+type connectMigrateOpts struct {
+	Type             types.DatabaseType
+	SQliteConnection string
+	PSQLConnection   string
+	MigrateFn        func(*sql.DB, types.DatabaseType) error
+}
+
+// connects to the configured database and migrates the schema
+func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 	var datasource string
 	var dbtype string
 
 	logrus.WithFields(logrus.Fields{
-		"db_type":     t,
-		"sqlite_conn": sqliteConn,
-		"pg_conn":     psqlConn,
-	}).Debug("Connecting and migrating")
+		"db_type":     opts.Type,
+		"sqlite_conn": opts.SQliteConnection,
+		"pg_conn":     opts.PSQLConnection,
+	}).Info("Connecting and migrating")
 
-	switch t {
+	switch opts.Type {
 	case types.DATABASE_DUMMY:
 		return nil, nil
 	case types.DATABASE_POSTGRES:
-		datasource = psqlConn
+		datasource = opts.PSQLConnection
 		dbtype = "postgres"
 	default:
 		// default to sqlite
-		datasource = sqliteConn
+		datasource = opts.SQliteConnection
 		dbtype = "sqlite"
 	}
 
-	if t == types.DATABASE_POSTGRES && datasource == "" {
+	if opts.Type == types.DATABASE_POSTGRES && datasource == "" {
 		// pg connection unconfigured
 		return nil, nil
 	}
@@ -92,7 +97,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 		return nil, err
 	}
 
-	if t == types.DATABASE_SQLITE {
+	if opts.Type == types.DATABASE_SQLITE {
 		// enable wal on sqlite databases
 		err = wal.EnableWAL(db)
 		if err != nil {
@@ -100,7 +105,7 @@ func connectAndMigrate(t types.DatabaseType, sqliteConn, psqlConn string, migFn 
 		}
 	}
 
-	err = migFn(db, t)
+	err = opts.MigrateFn(db, opts.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -126,76 +131,81 @@ func New(world_dir string) (*Context, error) {
 
 	// map
 	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
-	ctx.map_db, err = connectAndMigrate(
-		dbtype,
-		path.Join(world_dir, "map.sqlite"),
-		wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
-		block.MigrateBlockDB,
-	)
+	map_db, err := connectAndMigrate(&connectMigrateOpts{
+		Type:             dbtype,
+		SQliteConnection: path.Join(world_dir, "map.sqlite"),
+		PSQLConnection:   wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
+		MigrateFn:        block.MigrateBlockDB,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if ctx.map_db != nil {
-		ctx.Blocks = block.NewBlockRepository(ctx.map_db, dbtype)
+	if map_db != nil {
+		ctx.Blocks = block.NewBlockRepository(map_db, dbtype)
 		if ctx.Blocks == nil {
 			return nil, fmt.Errorf("invalid repository dbtype: %v", dbtype)
 		}
 		ctx.backuprepos = append(ctx.backuprepos, ctx.Blocks)
+		ctx.open_databases = append(ctx.open_databases, map_db)
 	}
 
 	// auth/privs
 	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_AUTH_BACKEND])
-	ctx.auth_db, err = connectAndMigrate(
-		dbtype,
-		path.Join(world_dir, "auth.sqlite"),
-		wc[worldconfig.CONFIG_PSQL_AUTH_CONNECTION],
-		auth.MigrateAuthDB,
-	)
+	auth_db, err := connectAndMigrate(&connectMigrateOpts{
+		Type:             dbtype,
+		SQliteConnection: path.Join(world_dir, "auth.sqlite"),
+		PSQLConnection:   wc[worldconfig.CONFIG_PSQL_AUTH_CONNECTION],
+		MigrateFn:        auth.MigrateAuthDB,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if ctx.auth_db != nil {
-		ctx.Auth = auth.NewAuthRepository(ctx.auth_db, dbtype)
-		ctx.Privs = auth.NewPrivilegeRepository(ctx.auth_db, dbtype)
+	if auth_db != nil {
+		ctx.Auth = auth.NewAuthRepository(auth_db, dbtype)
+		ctx.Privs = auth.NewPrivilegeRepository(auth_db, dbtype)
 		ctx.backuprepos = append(ctx.backuprepos, ctx.Auth, ctx.Privs)
+		ctx.open_databases = append(ctx.open_databases, auth_db)
 	}
 
 	// mod storage
 	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_STORAGE_BACKEND])
-	ctx.mod_storage_db, err = connectAndMigrate(
-		dbtype,
-		path.Join(world_dir, "mod_storage.sqlite"),
-		wc[worldconfig.CONFIG_PSQL_MOD_STORAGE_CONNECTION],
-		mod_storage.MigrateModStorageDB,
-	)
+	mod_storage_db, err := connectAndMigrate(&connectMigrateOpts{
+		Type:             dbtype,
+		SQliteConnection: path.Join(world_dir, "mod_storage.sqlite"),
+		PSQLConnection:   wc[worldconfig.CONFIG_PSQL_MOD_STORAGE_CONNECTION],
+		MigrateFn:        mod_storage.MigrateModStorageDB,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if ctx.mod_storage_db != nil {
-		ctx.ModStorage = mod_storage.NewModStorageRepository(ctx.mod_storage_db, dbtype)
+	if mod_storage_db != nil {
+		ctx.ModStorage = mod_storage.NewModStorageRepository(mod_storage_db, dbtype)
 		ctx.backuprepos = append(ctx.backuprepos, ctx.ModStorage)
+		ctx.open_databases = append(ctx.open_databases, mod_storage_db)
 	}
 
 	// players
 	dbtype = types.DatabaseType(wc[worldconfig.CONFIG_PLAYER_BACKEND])
-	ctx.player_db, err = connectAndMigrate(
-		dbtype,
-		path.Join(world_dir, "players.sqlite"),
-		wc[worldconfig.CONFIG_PSQL_PLAYER_CONNECTION],
-		player.MigratePlayerDB,
-	)
+	player_db, err := connectAndMigrate(&connectMigrateOpts{
+		Type:             dbtype,
+		SQliteConnection: path.Join(world_dir, "players.sqlite"),
+		PSQLConnection:   wc[worldconfig.CONFIG_PSQL_PLAYER_CONNECTION],
+		MigrateFn:        player.MigratePlayerDB,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if ctx.player_db != nil {
-		ctx.Player = player.NewPlayerRepository(ctx.player_db, dbtype)
-		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(ctx.player_db, dbtype)
+	if player_db != nil {
+		ctx.Player = player.NewPlayerRepository(player_db, dbtype)
+		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(player_db, dbtype)
 		ctx.backuprepos = append(ctx.backuprepos, ctx.Player, ctx.PlayerMetadata)
+		ctx.open_databases = append(ctx.open_databases, player_db)
 	}
 
 	return ctx, nil
 }
 
+// creates just the connection to the block-repository
 func NewBlockDB(world_dir string) (block.BlockRepository, error) {
 	logrus.WithFields(logrus.Fields{"world_dir": world_dir}).Debug("Creating new Block-DB")
 
@@ -206,12 +216,12 @@ func NewBlockDB(world_dir string) (block.BlockRepository, error) {
 
 	// map
 	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
-	map_db, err := connectAndMigrate(
-		dbtype,
-		path.Join(world_dir, "map.sqlite"),
-		wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
-		block.MigrateBlockDB,
-	)
+	map_db, err := connectAndMigrate(&connectMigrateOpts{
+		Type:             dbtype,
+		SQliteConnection: path.Join(world_dir, "map.sqlite"),
+		PSQLConnection:   wc[worldconfig.CONFIG_PSQL_MAP_CONNECTION],
+		MigrateFn:        block.MigrateBlockDB,
+	})
 	if err != nil {
 		return nil, err
 	}
