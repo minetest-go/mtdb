@@ -10,7 +10,7 @@ services:
    - "postgres:/var/lib/postgresql/data"
 
  integration-test:
-  image: golang:1.21.4
+  image: golang:1.22.1
   depends_on:
    - postgres
   volumes:
