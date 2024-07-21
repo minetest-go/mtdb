@@ -7,6 +7,8 @@ import (
 	"path"
 
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
@@ -15,7 +17,6 @@ import (
 	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
-	_ "modernc.org/sqlite"
 )
 
 // Database connection context
@@ -84,7 +85,7 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 	default:
 		// default to sqlite
 		datasource = opts.SQliteConnection
-		dbtype = "sqlite"
+		dbtype = "sqlite3"
 	}
 
 	if opts.Type == types.DATABASE_POSTGRES && datasource == "" {
@@ -92,7 +93,7 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 		return nil, nil
 	}
 
-	db, err := sql.Open(string(dbtype), datasource)
+	db, err := sql.Open(dbtype, fmt.Sprintf("%s?_timeout=5000&_journal=WAL&_cache=shared", datasource))
 	if err != nil {
 		return nil, err
 	}
