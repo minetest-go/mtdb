@@ -24,7 +24,6 @@ services:
    - PGPORT=5432
    - PGDATABASE=postgres
    - LOGLEVEL=debug
-   - CGO_ENABLED=0
    - GO_FLAGS=-count=1
   working_dir: /data
   command: ["go", "test", "./...", "-cover"]

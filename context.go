@@ -84,7 +84,7 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 		dbtype = "postgres"
 	default:
 		// default to sqlite
-		datasource = opts.SQliteConnection
+		datasource = fmt.Sprintf("%s?_timeout=5000&_journal=WAL&_cache=shared", opts.SQliteConnection)
 		dbtype = "sqlite3"
 	}
 
@@ -93,7 +93,7 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 		return nil, nil
 	}
 
-	db, err := sql.Open(dbtype, fmt.Sprintf("%s?_timeout=5000&_journal=WAL&_cache=shared", datasource))
+	db, err := sql.Open(dbtype, datasource)
 	if err != nil {
 		return nil, err
 	}
