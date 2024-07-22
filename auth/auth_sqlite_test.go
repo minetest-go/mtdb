@@ -1,11 +1,13 @@
 package auth_test
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"os"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/auth"
 	"github.com/minetest-go/mtdb/types"
@@ -164,4 +166,65 @@ func TestSqliteAuthRepo(t *testing.T) {
 	priv_repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)
 
 	testAuthRepository(t, auth_repo, priv_repo)
+}
+
+func TestSqliteBackup(t *testing.T) {
+	// open db
+	srcfile, err := os.CreateTemp(os.TempDir(), "auth.sqlite")
+	assert.NoError(t, err)
+	assert.NotNil(t, srcfile)
+	srcdb, err := sql.Open("sqlite3", "file:"+srcfile.Name())
+	assert.NoError(t, err)
+	assert.NoError(t, auth.MigrateAuthDB(srcdb, types.DATABASE_SQLITE))
+	assert.NoError(t, wal.EnableWAL(srcdb))
+
+	dstfile, err := os.CreateTemp(os.TempDir(), "auth-dest.sqlite")
+	assert.NoError(t, err)
+	assert.NotNil(t, srcfile)
+	dstdb, err := sql.Open("sqlite3", "file:"+dstfile.Name())
+	assert.NoError(t, err)
+
+	srcconn, err := srcdb.Conn(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, srcconn)
+	defer srcconn.Close()
+
+	dstconn, err := dstdb.Conn(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, dstconn)
+	defer dstconn.Close()
+
+	var srcsq3, dstsq3 *sqlite3.SQLiteConn
+	err = srcconn.Raw(func(driverConn any) error {
+		var ok bool
+		srcsq3, ok = driverConn.(*sqlite3.SQLiteConn)
+		if !ok {
+			return errors.New("failed to get sqlite3 connection")
+		}
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, srcsq3)
+
+	err = dstconn.Raw(func(driverConn any) error {
+		var ok bool
+		dstsq3, ok = driverConn.(*sqlite3.SQLiteConn)
+		if !ok {
+			return errors.New("failed to get sqlite3 connection")
+		}
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, dstsq3)
+
+	b, err := dstsq3.Backup("main", srcsq3, "main")
+	assert.NoError(t, err)
+	assert.NotNil(t, b)
+	defer b.Finish()
+
+	done := false
+	for !done {
+		done, err = b.Step(-1)
+		assert.NoError(t, err)
+	}
 }
