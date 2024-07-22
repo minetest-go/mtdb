@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/minetest-go/mtdb/types"
 )
@@ -57,11 +58,12 @@ var orderDirections = map[OrderDirectionType]bool{
 }
 
 type AuthSearch struct {
-	Usernamelike   *string             `json:"usernamelike"`
-	Username       *string             `json:"username"`
-	Limit          *int                `json:"limit"`
-	OrderColumn    *OrderColumnType    `json:"order_column"`
-	OrderDirection *OrderDirectionType `json:"order_direction"`
+	Usernamelike       *string             `json:"usernamelike"`
+	Username           *string             `json:"username"`
+	UsernameIgnoreCase *string             `json:"username_ignorecase"`
+	Limit              *int                `json:"limit"`
+	OrderColumn        *OrderColumnType    `json:"order_column"`
+	OrderDirection     *OrderDirectionType `json:"order_direction"`
 }
 
 func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (string, []interface{}) {
@@ -72,6 +74,12 @@ func (repo *AuthRepository) buildWhereClause(fields string, s *AuthSearch) (stri
 	if s.Username != nil {
 		q += fmt.Sprintf(" and name = $%d", i)
 		args = append(args, *s.Username)
+		i++
+	}
+
+	if s.UsernameIgnoreCase != nil {
+		q += fmt.Sprintf(" and upper(name) = $%d", i)
+		args = append(args, strings.ToUpper(*s.UsernameIgnoreCase))
 		i++
 	}
 

@@ -65,6 +65,15 @@ func testAuthRepository(t *testing.T, auth_repo *auth.AuthRepository, priv_repo 
 	assert.NotNil(t, list)
 	assert.Equal(t, 1, len(list))
 
+	// search 4
+	case_username := "TeSt"
+	list, err = auth_repo.Search(&auth.AuthSearch{
+		UsernameIgnoreCase: &case_username,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, list)
+	assert.Equal(t, 1, len(list))
+
 	// count
 	count, err := auth_repo.Count(&auth.AuthSearch{
 		Usernamelike: &s_username,
