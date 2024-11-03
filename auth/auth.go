@@ -1,11 +1,7 @@
 package auth
 
 import (
-	"archive/zip"
-	"bufio"
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -152,58 +148,4 @@ func (repo *AuthRepository) Delete(id int64) error {
 func (repo *AuthRepository) DeleteAll() error {
 	_, err := repo.db.Exec("delete from auth")
 	return err
-}
-
-func (repo *AuthRepository) Export(z *zip.Writer) error {
-	w, err := z.Create("auth.json")
-	if err != nil {
-		return err
-	}
-	enc := json.NewEncoder(w)
-
-	rows, err := repo.db.Query("select id,name,password,last_login from auth")
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		e := &AuthEntry{}
-		err = rows.Scan(&e.ID, &e.Name, &e.Password, &e.LastLogin)
-		if err != nil {
-			return err
-		}
-
-		err = enc.Encode(e)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (repo *AuthRepository) Import(z *zip.Reader) error {
-	f, err := z.Open("auth.json")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		dc := json.NewDecoder(bytes.NewReader(sc.Bytes()))
-		e := &AuthEntry{}
-		err = dc.Decode(e)
-		if err != nil {
-			return err
-		}
-
-		_, err := repo.db.Exec("insert into auth(id,name,password,last_login) values($1,$2,$3,$4)", e.ID, e.Name, e.Password, e.LastLogin)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

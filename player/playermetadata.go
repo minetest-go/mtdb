@@ -1,11 +1,7 @@
 package player
 
 import (
-	"archive/zip"
-	"bufio"
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"errors"
 
 	"github.com/minetest-go/mtdb/types"
@@ -60,65 +56,4 @@ func (r *PlayerMetadataRepository) SetPlayerMetadata(md *PlayerMetadata) error {
 
 	_, err := r.db.Exec(q, md.Player, md.Metadata, md.Value)
 	return err
-}
-
-func (r *PlayerMetadataRepository) Export(z *zip.Writer) error {
-	w, err := z.Create("playermetadata.json")
-	if err != nil {
-		return err
-	}
-	enc := json.NewEncoder(w)
-
-	rows, err := r.db.Query("select player from player_metadata")
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		name := ""
-		err = rows.Scan(&name)
-		if err != nil {
-			return err
-		}
-
-		list, err := r.GetPlayerMetadata(name)
-		if err != nil {
-			return err
-		}
-
-		for _, entry := range list {
-			err = enc.Encode(entry)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (r *PlayerMetadataRepository) Import(z *zip.Reader) error {
-	f, err := z.Open("playermetadata.json")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		dc := json.NewDecoder(bytes.NewReader(sc.Bytes()))
-		e := &PlayerMetadata{}
-		err = dc.Decode(e)
-		if err != nil {
-			return err
-		}
-
-		err = r.SetPlayerMetadata(e)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

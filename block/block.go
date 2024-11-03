@@ -30,8 +30,6 @@ func (b *Block) String() string {
 // All positions are in mapblock coordinates, as described here:
 // https://github.com/minetest/minetest/blob/master/doc/lua_api.md#mapblock-coordinates
 type BlockRepository interface {
-	types.Backup
-
 	// GetByPost returns the map block at positions X,Y,Z.
 	GetByPos(x, y, z int) (*Block, error)
 

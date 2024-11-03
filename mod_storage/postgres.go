@@ -1,11 +1,7 @@
 package mod_storage
 
 import (
-	"archive/zip"
-	"bufio"
-	"bytes"
 	"database/sql"
-	"encoding/json"
 )
 
 type modStoragePostgresRepository struct {
@@ -42,58 +38,4 @@ func (repo *modStoragePostgresRepository) Count() (int64, error) {
 	count := int64(0)
 	err := row.Scan(&count)
 	return count, err
-}
-
-func (repo *modStoragePostgresRepository) Export(z *zip.Writer) error {
-	w, err := z.Create("mod_storage.json")
-	if err != nil {
-		return err
-	}
-	enc := json.NewEncoder(w)
-
-	rows, err := repo.db.Query("select modname,key,value from mod_storage")
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		e := &ModStorageEntry{}
-		err = rows.Scan(&e.ModName, &e.Key, &e.Value)
-		if err != nil {
-			return err
-		}
-
-		err = enc.Encode(e)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (repo *modStoragePostgresRepository) Import(z *zip.Reader) error {
-	f, err := z.Open("mod_storage.json")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		dc := json.NewDecoder(bytes.NewReader(sc.Bytes()))
-		e := &ModStorageEntry{}
-		err = dc.Decode(e)
-		if err != nil {
-			return err
-		}
-
-		_, err := repo.db.Exec("insert into mod_storage(modname,key,value) values($1,$2,$3) on conflict set value = $3", e.ModName, e.Key, e.Value)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

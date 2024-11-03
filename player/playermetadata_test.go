@@ -1,8 +1,6 @@
 package player_test
 
 import (
-	"archive/zip"
-	"bytes"
 	"database/sql"
 	"os"
 	"testing"
@@ -25,27 +23,6 @@ func testPlayerMetadata(t *testing.T, repo *player.PlayerMetadataRepository, pre
 	assert.Equal(t, "singleplayer", mdlist[0].Player)
 	assert.Equal(t, "x", mdlist[0].Metadata)
 	assert.Equal(t, "y", mdlist[0].Value)
-
-	// export
-	buf := bytes.NewBuffer([]byte{})
-	w := zip.NewWriter(buf)
-	err = repo.Export(w)
-	assert.NoError(t, err)
-	err = w.Close()
-	assert.NoError(t, err)
-	zipfile, err := os.CreateTemp(os.TempDir(), "playermetadata.zip")
-	assert.NoError(t, err)
-	f, err := os.Create(zipfile.Name())
-	assert.NoError(t, err)
-	count, err := f.Write(buf.Bytes())
-	assert.NoError(t, err)
-	assert.True(t, count > 0)
-
-	// import
-	z, err := zip.OpenReader(zipfile.Name())
-	assert.NoError(t, err)
-	err = repo.Import(&z.Reader)
-	assert.NoError(t, err)
 }
 
 func TestPlayerMetadataSQlite(t *testing.T) {

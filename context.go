@@ -1,7 +1,6 @@
 package mtdb
 
 import (
-	"archive/zip"
 	"database/sql"
 	"fmt"
 	"path"
@@ -28,7 +27,6 @@ type Context struct {
 	Blocks         block.BlockRepository
 	ModStorage     mod_storage.ModStorageRepository
 	open_databases []*sql.DB
-	backuprepos    []types.Backup
 }
 
 // closes all database connections
@@ -36,26 +34,6 @@ func (ctx *Context) Close() {
 	for _, db := range ctx.open_databases {
 		db.Close()
 	}
-}
-
-func (ctx *Context) Export(z *zip.Writer) error {
-	for _, r := range ctx.backuprepos {
-		err := r.Export(z)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (ctx *Context) Import(z *zip.Reader) error {
-	for _, r := range ctx.backuprepos {
-		err := r.Import(z)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 type connectMigrateOpts struct {
@@ -126,9 +104,7 @@ func New(world_dir string) (*Context, error) {
 		"world_dir": world_dir,
 		"world.mt":  wc,
 	}).Debug("Creating new DB context")
-	ctx := &Context{
-		backuprepos: make([]types.Backup, 0),
-	}
+	ctx := &Context{}
 
 	// map
 	dbtype := types.DatabaseType(wc[worldconfig.CONFIG_MAP_BACKEND])
@@ -146,7 +122,6 @@ func New(world_dir string) (*Context, error) {
 		if ctx.Blocks == nil {
 			return nil, fmt.Errorf("invalid repository dbtype: %v", dbtype)
 		}
-		ctx.backuprepos = append(ctx.backuprepos, ctx.Blocks)
 		ctx.open_databases = append(ctx.open_databases, map_db)
 	}
 
@@ -164,7 +139,6 @@ func New(world_dir string) (*Context, error) {
 	if auth_db != nil {
 		ctx.Auth = auth.NewAuthRepository(auth_db, dbtype)
 		ctx.Privs = auth.NewPrivilegeRepository(auth_db, dbtype)
-		ctx.backuprepos = append(ctx.backuprepos, ctx.Auth, ctx.Privs)
 		ctx.open_databases = append(ctx.open_databases, auth_db)
 	}
 
@@ -181,7 +155,6 @@ func New(world_dir string) (*Context, error) {
 	}
 	if mod_storage_db != nil {
 		ctx.ModStorage = mod_storage.NewModStorageRepository(mod_storage_db, dbtype)
-		ctx.backuprepos = append(ctx.backuprepos, ctx.ModStorage)
 		ctx.open_databases = append(ctx.open_databases, mod_storage_db)
 	}
 
@@ -199,7 +172,6 @@ func New(world_dir string) (*Context, error) {
 	if player_db != nil {
 		ctx.Player = player.NewPlayerRepository(player_db, dbtype)
 		ctx.PlayerMetadata = player.NewPlayerMetadataRepository(player_db, dbtype)
-		ctx.backuprepos = append(ctx.backuprepos, ctx.Player, ctx.PlayerMetadata)
 		ctx.open_databases = append(ctx.open_databases, player_db)
 	}
 

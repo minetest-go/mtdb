@@ -1,7 +1,6 @@
 package mod_storage
 
 import (
-	"archive/zip"
 	"database/sql"
 
 	"github.com/minetest-go/mtdb/types"
@@ -20,8 +19,6 @@ type ModStorageRepository interface {
 	Update(entry *ModStorageEntry) error
 	Delete(modname string, key []byte) error
 	Count() (int64, error)
-	Export(z *zip.Writer) error
-	Import(z *zip.Reader) error
 }
 
 func NewModStorageRepository(db *sql.DB, dbtype types.DatabaseType) ModStorageRepository {

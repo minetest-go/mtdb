@@ -1,9 +1,6 @@
 package auth_test
 
 import (
-	"archive/zip"
-	"bytes"
-	"os"
 	"testing"
 
 	"github.com/minetest-go/mtdb/auth"
@@ -113,23 +110,6 @@ func testAuthRepository(t *testing.T, auth_repo *auth.AuthRepository, priv_repo 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(privs))
 
-	// export
-	buf := bytes.NewBuffer([]byte{})
-	w := zip.NewWriter(buf)
-	err = auth_repo.Export(w)
-	assert.NoError(t, err)
-	err = priv_repo.Export(w)
-	assert.NoError(t, err)
-	err = w.Close()
-	assert.NoError(t, err)
-	zipfile, err := os.CreateTemp(os.TempDir(), "auth.zip")
-	assert.NoError(t, err)
-	f, err := os.Create(zipfile.Name())
-	assert.NoError(t, err)
-	count, err = f.Write(buf.Bytes())
-	assert.NoError(t, err)
-	assert.True(t, count > 0)
-
 	// delete priv
 	assert.NoError(t, priv_repo.Delete(*e.ID, "interact"))
 
@@ -138,27 +118,4 @@ func testAuthRepository(t *testing.T, auth_repo *auth.AuthRepository, priv_repo 
 
 	// delete all
 	assert.NoError(t, auth_repo.DeleteAll())
-
-	// import
-	z, err := zip.OpenReader(zipfile.Name())
-	assert.NoError(t, err)
-	err = auth_repo.Import(&z.Reader)
-	assert.NoError(t, err)
-	err = priv_repo.Import(&z.Reader)
-	assert.NoError(t, err)
-
-	// check import
-	e, err = auth_repo.GetByUsername("test")
-	assert.NoError(t, err)
-	assert.NotNil(t, e)
-	assert.Equal(t, "test", e.Name)
-	assert.Equal(t, "blah", e.Password)
-	assert.Equal(t, 456, e.LastLogin)
-	assert.NotNil(t, e.ID)
-
-	// check imported priv
-	privs, err = priv_repo.GetByID(*e.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(privs))
-
 }
