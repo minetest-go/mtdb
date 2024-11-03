@@ -94,11 +94,16 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 
 // parses the "world.mt" file in the world-dir and creates a new context
 func New(world_dir string) (*Context, error) {
-
 	wc, err := worldconfig.Parse(path.Join(world_dir, "world.mt"))
 	if err != nil {
 		return nil, err
 	}
+
+	return NewWithConfig(world_dir, wc)
+}
+
+// creates the database context with the given config in map form
+func NewWithConfig(world_dir string, wc map[string]string) (*Context, error) {
 
 	logrus.WithFields(logrus.Fields{
 		"world_dir": world_dir,
