@@ -36,3 +36,21 @@ func ExampleContext() {
 	// use the github.com/minetest-go/mapparser project to parse the actual content
 	fmt.Printf("Mapblock content: %s\n", block.Data)
 }
+
+func ExampleNewBlockDB() {
+	// create a new block-repository with the backend-connection specified in the world.mt file in the given directory
+	blocks, err := mtdb.NewBlockDB("/my-world-dir")
+	if err != nil {
+		panic(err)
+	}
+
+	// fetch the mapblock at position 0,0,0
+	block, err := blocks.GetByPos(0, 0, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// dump the raw and unparsed binary data
+	// use the github.com/minetest-go/mapparser project to parse the actual content
+	fmt.Printf("Mapblock content: %s\n", block.Data)
+}

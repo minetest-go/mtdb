@@ -34,7 +34,7 @@ type testingLogWriter struct {
 }
 
 func (l testingLogWriter) Write(b []byte) (n int, err error) {
-	l.t.Logf(string(b))
+	l.t.Log(string(b))
 	return len(b), nil
 }
 
