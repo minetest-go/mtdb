@@ -123,7 +123,10 @@ func NewWithConfig(world_dir string, wc map[string]string) (*Context, error) {
 		return nil, err
 	}
 	if map_db != nil {
-		ctx.Blocks = block.NewBlockRepository(map_db, dbtype)
+		ctx.Blocks, err = block.NewBlockRepository(map_db, dbtype)
+		if err != nil {
+			return nil, fmt.Errorf("repo creation failed: %v", err)
+		}
 		if ctx.Blocks == nil {
 			return nil, fmt.Errorf("invalid repository dbtype: %v", dbtype)
 		}
@@ -204,7 +207,7 @@ func NewBlockDB(world_dir string) (block.BlockRepository, error) {
 		return nil, err
 	}
 	if map_db != nil {
-		return block.NewBlockRepository(map_db, dbtype), nil
+		return block.NewBlockRepository(map_db, dbtype)
 	}
 	return nil, nil
 }

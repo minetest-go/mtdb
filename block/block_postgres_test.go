@@ -16,7 +16,10 @@ func setupPostgress(t *testing.T) (block.BlockRepository, *sql.DB) {
 	db.Exec("delete from blocks")
 
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_POSTGRES))
-	blocks_repo := block.NewBlockRepository(db, types.DATABASE_POSTGRES)
+	blocks_repo, err := block.NewBlockRepository(db, types.DATABASE_POSTGRES)
+	if err != nil {
+		panic(err)
+	}
 
 	assert.NotNil(t, blocks_repo)
 	return blocks_repo, db

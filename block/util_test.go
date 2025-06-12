@@ -3,6 +3,7 @@ package block_test
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -41,4 +42,27 @@ func (l testingLogWriter) Write(b []byte) (n int, err error) {
 func logToTesting(t *testing.T) {
 	logrus.SetOutput(testingLogWriter{t})
 	logrus.SetLevel(logrus.DebugLevel)
+}
+
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }

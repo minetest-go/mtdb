@@ -19,7 +19,10 @@ func ExampleNewBlockRepository() {
 	block.MigrateBlockDB(db, types.DATABASE_SQLITE)
 
 	// create a new repository instance
-	repo := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	repo, err := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	if err != nil {
+		panic(err)
+	}
 
 	// fetch the mapblock at position 0,0,0
 	block, err := repo.GetByPos(0, 0, 0)

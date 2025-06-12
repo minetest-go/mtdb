@@ -59,14 +59,15 @@ type BlockRepository interface {
 
 // NewBlockRepository initializes the connection with the appropriate database
 // backend and returns the BlockRepository implementation suited for it.
-func NewBlockRepository(db *sql.DB, dbtype types.DatabaseType) BlockRepository {
+func NewBlockRepository(db *sql.DB, dbtype types.DatabaseType) (BlockRepository, error) {
 	switch dbtype {
 	case types.DATABASE_POSTGRES:
-		return &postgresBlockRepository{db: db}
+		return &postgresBlockRepository{db: db}, nil
 	case types.DATABASE_SQLITE:
-		return &sqliteBlockRepository{db: db}
+		repo := &sqliteBlockRepository{db: db}
+		return repo, repo.checkNewRowFormat()
 	default:
-		return nil
+		return nil, nil
 	}
 }
 

@@ -2,6 +2,7 @@ package block_test
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 
@@ -22,7 +23,9 @@ func setupSqlite(t *testing.T) (block.BlockRepository, *sql.DB) {
 	assert.NoError(t, wal.EnableWAL(db))
 
 	assert.NoError(t, block.MigrateBlockDB(db, types.DATABASE_SQLITE))
-	blocks_repo := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	blocks_repo, err := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	assert.NoError(t, err)
+
 	return blocks_repo, db
 }
 
@@ -78,4 +81,44 @@ func TestCoordToPlain(t *testing.T) {
 				"x=%v,y=%v=z=%v => x=%v, y=%v, z=%v", x1, y1, z1, x2, y2, z2)
 		}
 	}
+}
+
+func TestBlockRepoLegacy(t *testing.T) {
+	dbfile, err := os.CreateTemp(os.TempDir(), "map.sqlite")
+	assert.NoError(t, err)
+	assert.NotNil(t, dbfile)
+	copyFileContents("testdata/map_legacy_column.sqlite", dbfile.Name())
+
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s", dbfile.Name()))
+	assert.NoError(t, err)
+	assert.NoError(t, wal.EnableWAL(db))
+
+	repo, err := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	assert.NoError(t, err)
+	assert.NotNil(t, repo)
+
+	b, err := repo.GetByPos(0, 0, 0)
+	assert.NoError(t, err)
+	assert.NotNil(t, b)
+	assert.True(t, len(b.Data) > 0)
+}
+
+func TestBlockRepoMultiColumn(t *testing.T) {
+	dbfile, err := os.CreateTemp(os.TempDir(), "map.sqlite")
+	assert.NoError(t, err)
+	assert.NotNil(t, dbfile)
+	copyFileContents("testdata/map_multi_pos_column.sqlite", dbfile.Name())
+
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s", dbfile.Name()))
+	assert.NoError(t, err)
+	assert.NoError(t, wal.EnableWAL(db))
+
+	repo, err := block.NewBlockRepository(db, types.DATABASE_SQLITE)
+	assert.NoError(t, err)
+	assert.NotNil(t, repo)
+
+	b, err := repo.GetByPos(0, 0, 0)
+	assert.NoError(t, err)
+	assert.NotNil(t, b)
+	assert.True(t, len(b.Data) > 0)
 }
