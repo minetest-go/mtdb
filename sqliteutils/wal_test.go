@@ -1,4 +1,4 @@
-package wal_test
+package sqliteutils_test
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/minetest-go/mtdb/wal"
+	"github.com/minetest-go/mtdb/sqliteutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +19,7 @@ func TestCheckJournalModeDelete(t *testing.T) {
 
 	db, err := sql.Open("sqlite3", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
-	assert.Error(t, wal.EnableWAL(db))
+	assert.Error(t, sqliteutils.EnableWAL(db))
 }
 
 func TestCheckJournalModeWal(t *testing.T) {
@@ -30,5 +30,5 @@ func TestCheckJournalModeWal(t *testing.T) {
 
 	db, err := sql.Open("sqlite3", "file:"+dbfile.Name()+"?mode=ro")
 	assert.NoError(t, err)
-	assert.NoError(t, wal.EnableWAL(db))
+	assert.NoError(t, sqliteutils.EnableWAL(db))
 }
