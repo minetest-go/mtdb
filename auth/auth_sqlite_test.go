@@ -10,8 +10,8 @@ import (
 	"github.com/mattn/go-sqlite3"
 
 	"github.com/minetest-go/mtdb/auth"
+	"github.com/minetest-go/mtdb/sqliteutils"
 	"github.com/minetest-go/mtdb/types"
-	"github.com/minetest-go/mtdb/wal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -160,7 +160,7 @@ func TestSqliteAuthRepo(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+dbfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, auth.MigrateAuthDB(db, types.DATABASE_SQLITE))
-	assert.NoError(t, wal.EnableWAL(db))
+	assert.NoError(t, sqliteutils.EnableWAL(db))
 
 	auth_repo := auth.NewAuthRepository(db, types.DATABASE_SQLITE)
 	priv_repo := auth.NewPrivilegeRepository(db, types.DATABASE_SQLITE)
@@ -176,7 +176,7 @@ func TestSqliteBackup(t *testing.T) {
 	srcdb, err := sql.Open("sqlite3", "file:"+srcfile.Name())
 	assert.NoError(t, err)
 	assert.NoError(t, auth.MigrateAuthDB(srcdb, types.DATABASE_SQLITE))
-	assert.NoError(t, wal.EnableWAL(srcdb))
+	assert.NoError(t, sqliteutils.EnableWAL(srcdb))
 
 	dstfile, err := os.CreateTemp(os.TempDir(), "auth-dest.sqlite")
 	assert.NoError(t, err)

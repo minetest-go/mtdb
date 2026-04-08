@@ -12,8 +12,8 @@ import (
 	"github.com/minetest-go/mtdb/block"
 	"github.com/minetest-go/mtdb/mod_storage"
 	"github.com/minetest-go/mtdb/player"
+	"github.com/minetest-go/mtdb/sqliteutils"
 	"github.com/minetest-go/mtdb/types"
-	"github.com/minetest-go/mtdb/wal"
 	"github.com/minetest-go/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
 )
@@ -78,7 +78,13 @@ func connectAndMigrate(opts *connectMigrateOpts) (*sql.DB, error) {
 
 	if opts.Type == types.DATABASE_SQLITE {
 		// enable wal on sqlite databases
-		err = wal.EnableWAL(db)
+		err = sqliteutils.EnableWAL(db)
+		if err != nil {
+			return nil, err
+		}
+
+		// enable autovacuum
+		err = sqliteutils.EnableAutoVacuum(db)
 		if err != nil {
 			return nil, err
 		}

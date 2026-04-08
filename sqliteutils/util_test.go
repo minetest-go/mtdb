@@ -1,4 +1,4 @@
-package wal_test
+package sqliteutils_test
 
 import (
 	"io"
