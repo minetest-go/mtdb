@@ -1,3 +1,4 @@
+// Deprecated: this module has moved, use github.com/luanti-golang/mtdb instead.
 module github.com/minetest-go/mtdb
 
 go 1.23
