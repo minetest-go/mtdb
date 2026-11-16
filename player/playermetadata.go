@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 func NewPlayerMetadataRepository(db *sql.DB, dbtype types.DatabaseType) *PlayerMetadataRepository {

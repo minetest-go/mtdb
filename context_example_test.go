@@ -3,11 +3,11 @@ package mtdb_test
 import (
 	"fmt"
 
-	"github.com/minetest-go/mtdb"
+	"github.com/luanti-golang/mtdb"
 )
 
 func ExampleContext() {
-	// create a new context (an object with all repositories) from a minetest world-directory
+	// create a new context (an object with all repositories) from a luanti world-directory
 	ctx, err := mtdb.New("/xy")
 	if err != nil {
 		panic(err)
@@ -33,7 +33,7 @@ func ExampleContext() {
 		panic(err)
 	}
 	// dump the raw and unparsed binary data
-	// use the github.com/minetest-go/mapparser project to parse the actual content
+	// use the github.com/luanti-golang/mapparser project to parse the actual content
 	fmt.Printf("Mapblock content: %s\n", block.Data)
 }
 
@@ -51,6 +51,6 @@ func ExampleNewBlockDB() {
 	}
 
 	// dump the raw and unparsed binary data
-	// use the github.com/minetest-go/mapparser project to parse the actual content
+	// use the github.com/luanti-golang/mapparser project to parse the actual content
 	fmt.Printf("Mapblock content: %s\n", block.Data)
 }

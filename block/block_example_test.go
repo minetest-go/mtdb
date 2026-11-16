@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/minetest-go/mtdb/block"
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/block"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 func ExampleNewBlockRepository() {
@@ -31,6 +31,6 @@ func ExampleNewBlockRepository() {
 	}
 
 	// dump the raw and unparsed binary data
-	// use the github.com/minetest-go/mapparser project to parse the actual content
+	// use the github.com/luanti-golang/mapparser project to parse the actual content
 	fmt.Printf("Mapblock content: %s\n", block.Data)
 }

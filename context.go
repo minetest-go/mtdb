@@ -8,13 +8,13 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/minetest-go/mtdb/auth"
-	"github.com/minetest-go/mtdb/block"
-	"github.com/minetest-go/mtdb/mod_storage"
-	"github.com/minetest-go/mtdb/player"
-	"github.com/minetest-go/mtdb/types"
-	"github.com/minetest-go/mtdb/wal"
-	"github.com/minetest-go/mtdb/worldconfig"
+	"github.com/luanti-golang/mtdb/auth"
+	"github.com/luanti-golang/mtdb/block"
+	"github.com/luanti-golang/mtdb/mod_storage"
+	"github.com/luanti-golang/mtdb/player"
+	"github.com/luanti-golang/mtdb/types"
+	"github.com/luanti-golang/mtdb/wal"
+	"github.com/luanti-golang/mtdb/worldconfig"
 	"github.com/sirupsen/logrus"
 )
 

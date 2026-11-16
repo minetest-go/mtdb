@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 type Block struct {
@@ -26,9 +26,9 @@ func (b *Block) String() string {
 	return fmt.Sprintf("Block{X: %d, Y: %d, Z: %d, data: \"%v\"}", b.PosX, b.PosY, b.PosZ, string(v))
 }
 
-// BlockRepository implementes data access layer for the Minetest map data.
+// BlockRepository implementes data access layer for the Luanti map data.
 // All positions are in mapblock coordinates, as described here:
-// https://github.com/minetest/minetest/blob/master/doc/lua_api.md#mapblock-coordinates
+// https://github.com/luanti-org/luanti/blob/master/doc/lua_api.md#mapblock-coordinates
 type BlockRepository interface {
 	// GetByPost returns the map block at positions X,Y,Z.
 	GetByPos(x, y, z int) (*Block, error)

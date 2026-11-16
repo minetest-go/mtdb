@@ -1,7 +1,7 @@
 package player
 
 import (
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 func getColumns(dbtype types.DatabaseType) []string {

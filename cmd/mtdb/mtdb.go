@@ -7,8 +7,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/minetest-go/mtdb"
-	"github.com/minetest-go/mtdb/worldconfig"
+	"github.com/luanti-golang/mtdb"
+	"github.com/luanti-golang/mtdb/worldconfig"
 )
 
 var (

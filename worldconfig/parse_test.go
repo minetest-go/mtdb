@@ -3,7 +3,7 @@ package worldconfig_test
 import (
 	"testing"
 
-	"github.com/minetest-go/mtdb/worldconfig"
+	"github.com/luanti-golang/mtdb/worldconfig"
 	"github.com/stretchr/testify/assert"
 )
 

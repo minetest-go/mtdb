@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/minetest-go/mtdb/wal"
+	"github.com/luanti-golang/mtdb/wal"
 	"github.com/stretchr/testify/assert"
 )
 

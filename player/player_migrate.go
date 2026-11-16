@@ -3,7 +3,7 @@ package player
 import (
 	"database/sql"
 
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 func MigratePlayerDB(db *sql.DB, dbtype types.DatabaseType) error {

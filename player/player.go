@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 func NewPlayerRepository(db *sql.DB, dbtype types.DatabaseType) *PlayerRepository {

@@ -6,8 +6,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/minetest-go/mtdb/auth"
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/auth"
+	"github.com/luanti-golang/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 

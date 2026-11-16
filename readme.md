@@ -1,10 +1,8 @@
-Minetest database repositories for the `golang` ecosystem
+Luanti database repositories for the `golang` ecosystem
 
-> **Deprecated:** this repository has moved to https://github.com/luanti-golang/mtdb, use the `github.com/luanti-golang/mtdb` go module instead.
+![](https://github.com/luanti-golang/mtdb/workflows/test/badge.svg)
 
-![](https://github.com/minetest-go/mtdb/workflows/test/badge.svg)
-
-Docs: https://pkg.go.dev/github.com/minetest-go/mtdb
+Docs: https://pkg.go.dev/github.com/luanti-golang/mtdb
 
 # Features
 

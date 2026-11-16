@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/minetest-go/mtdb/player"
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/player"
+	"github.com/luanti-golang/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 

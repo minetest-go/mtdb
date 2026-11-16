@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/minetest-go/mtdb"
+	"github.com/luanti-golang/mtdb"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/minetest-go/mtdb/block"
+	"github.com/luanti-golang/mtdb/block"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -117,7 +117,7 @@ func testBlocksRepositoryIterator(t *testing.T, blocks_repo block.BlockRepositor
 	}
 
 	// Sort order should be (z, y, x) to keep consistency with how sqlite
-	// in minetest works (using a single pos field with z+y+x summed and byte-shifted)
+	// in luanti works (using a single pos field with z+y+x summed and byte-shifted)
 	testCases := []testCase{
 		{-2001, -2001, -2001, "starting from -2000,-2000,-2000 should return 6", 6},
 		{-2000, -2000, -2000, "starting from -2000,-2000,-2000 should return 5", 5},

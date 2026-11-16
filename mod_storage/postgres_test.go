@@ -3,8 +3,8 @@ package mod_storage_test
 import (
 	"testing"
 
-	"github.com/minetest-go/mtdb/mod_storage"
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/mod_storage"
+	"github.com/luanti-golang/mtdb/types"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,7 +3,7 @@ package auth
 import (
 	"database/sql"
 
-	"github.com/minetest-go/mtdb/types"
+	"github.com/luanti-golang/mtdb/types"
 )
 
 type PrivilegeEntry struct {
